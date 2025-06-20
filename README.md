@@ -1,0 +1,2 @@
+# BO4ACST
+This repository complements the Bayesian Optimisation for Atmospheric Carbon Sequestering Thermosets (BO4ACST) project being developed at The Materials Science and Metallurgy Department of the University of Cambridge. This repository is the culmination of two year's (or at least it will be...) work on the the optimisation of strength in bio-based thermosets. The accompanying thesis will be published here once this project reaches its conclusion.

@@ -1,0 +1,20 @@
+{"pipettes":{
+    "P10mL":{"model":"P10mL","maxVol_ul":10000,"minVol_ul":1000,"DefaultTip":"D10mL","settingUnit":"ml","resolution":0.01},
+    "P200":{"model":"P200","maxVol_ul":200,"minVol_ul":20,"DefaultTip":"D200","settingUnit":"ul","resolution":0.1},
+    "P20":{"model":"P20","maxVol_ul":20,"minVol_ul":2,"DefaultTip":"D200","settingUnit":"ul","resolution":0.01},
+    "P2":{"model":"P2","maxVol_ul":2,"minVol_ul":0.2,"DefaultTip":"D10","settingUnit":"ul","resolution":0.001}
+},
+"tips":{
+    "D10mL":{"model":"D10mL","maxVol_ul":10000,"minVol_ul":1000},
+    "D200":{"model":"D200","maxVol_ul":200,"minVol_ul":20},
+    "D10":{"model":"D10","maxVol_ul":10,"minVol_ul":0.1}
+},
+"calibrations":{
+    "7732-18-5":{"cas":"7732-18-5","substance":"Water","location":"/metadata_2024-10-04_PipetteCalibration_7732-18-5.json"},
+    "2409-52-1":{"cas":"2409-52-1","substance":"Diethyl itaconate","location":"/metadata_2024-10-07_PipetteCalibration_2409-52-1.json"},
+    "121-69-7":{"cas":"121-69-7","substance":"Dimethyl aniline","location":"/metadata_2024-10-07_PipetteCalibration_121-69-7.json"},
+    "100-42-5":{"cas":"100-42-5","substance":"Styrene","location":"/metadata_2024-10-08_PipetteCalibration_100-42-5.json"},
+    "109-99-9":{"cas":"109-99-9","substance":"Tetrahydrofuran","location":"/metadata_2025-03-19_PipetteCalibration_109-99-9.json"},
+    "617-52-7":{"cas":"617-52-7","substance":"Dimethyl itaconate","location":"/metadata_2025-05-12_PipetteCalibration_617-52-7.json"}
+}
+}

@@ -1,0 +1,24 @@
+{"chemicals":{
+    "CX":{"acronym_str":"CX","name_str":"Cyclohexane","cas_str":"110-82-7","mr_flt":84.16,"density_flt":0.78},
+    "DeI":{"acronym_str":"DeI","name_str":"Diethyl itaconate","cas_str":"2409-52-1","mr_flt":186.20,"density_flt":1.04},
+    "DMA":{"acronym_str":"DMA","name_str":"Dimethyl aniline","cas_str":"121-69-7","mr_flt":121.18,"density_flt":0.96},
+    "HQ":{"acronym_str":"HQ","name_str":"Hydroquinone","cas_str":"123-31-9","mr_flt":110.11},
+    "IA":{"acronym_str":"IA","name_str":"Itaconic acid","cas_str":"97-65-4","mr_flt":130.10},
+    "PG":{"acronym_str":"PG","name_str":"Propylene Glycol","cas_str":"57-55-6","mr_flt":76.09,"density_flt":1.04},
+    "STY":{"acronym_str":"STY","name_str":"Styrene","cas_str":"100-42-5","mr_flt":104.15,"density_flt":0.91},
+    "W":{"acronym_str":"W","name_str":"Water","cas_str":"7732-18-5","mr_flt":18.02,"density_flt":1.00},
+    "PTSAM":{"acronym_str":"PTSAM","name_str":"P-toluene sulphonic acid monohydrate","cas_str":"6192-52-5","mr_flt":190.22},
+    "PTSA":{"acronym_str":"PTSA","name_str":"P-toluene sulphonic acid","cas_str":"104-15-4","mr_flt":172.20},
+    "CS":{"acronym_str":"CS","name_str":"Calcium sulphate","cas_str":"7778-18-9","mr_flt":136.14},
+    "BP":{"acronym_str":"BP","name_str":"Benzoyl peroxide","cas_str":"94-36-0","mr_flt":242.23},
+    "THF":{"acronym_str":"THF","name_str":"Tetrahydrofuran","cas_str":"109-99-9","mr_flt":72.107,"density_flt":0.8876},
+    "DmI":{"acronym_str":"DmI","name_str":"Dimethyl itaconate","cas_str":"617-52-7","mr_flt":158.15,"density_flt":1.116}
+},
+"mixtures":{
+    "UP1":{"acronym_str":"UP1","name_str":"Unsaturated Polyester 1","PrincipalComponent_str":"IA","SecondaryComponent_str":"PG"},
+    "I1":{"acronym_str":"I1","name_str":"Initiator 1","PrincipalComponent_str":"CS","SecondaryComponent_str":"BP"},
+    "UPR1":{"acronym_str":"UPR1","name_str":"Unsaturated Polyester Resin 1","PrincipalComponent_str":"UP1","SecondaryComponent_str":"DeI"},
+    "AUPR1":{"acronym_str":"AUPR1","name_str":"Accelerated Unsaturated Polyester Resin 1","PrincipalComponent_str":"UPR1","SecondaryComponent_str":"DMA"},
+    "IAUPR1":{"acronym_str":"IAUPR1","name_str":"Initiated Accelerated Unsaturated Polyester Resin 1","PrincipalComponent_str":"AUPR1","SecondaryComponent_str":"I1"}
+}
+}

@@ -1,0 +1,6 @@
+{"PipetteCalibration":{
+    "a":{"TemperatureOfSubstanceOC":19.5,"pipette":"P20","tip":"D200","location":"/raw-data_2024-10-07_PipetteCalibration_121-69-7_a.csv"},
+    "b":{"TemperatureOfSubstanceOC":19.5,"pipette":"P200","tip":"D200","location":"/raw-data_2024-10-07_PipetteCalibration_121-69-7_b.csv"},
+    "c":{"TemperatureOfSubstanceOC":19.5,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2024-10-07_PipetteCalibration_121-69-7_c.csv"},
+    "d":{"TemperatureOfSubstanceOC":19.5,"pipette":"P2","tip":"D10","location":"/raw-data_2024-10-09_PipetteCalibration_121-69-7_d.csv"}
+}}

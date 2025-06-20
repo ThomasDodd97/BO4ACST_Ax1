@@ -1,0 +1,4 @@
+{"PipetteCalibration":{
+    "a":{"TemperatureOfSubstanceOC":20.0,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2025-03-19_PipetteCalibration_109-99-9_a.csv"},
+    "b":{"TemperatureOfSubstanceOC":20.0,"pipette":"P200","tip":"D200","location":"/raw-data_2025-03-19_PipetteCalibration_109-99-9_b.csv"}
+}}
