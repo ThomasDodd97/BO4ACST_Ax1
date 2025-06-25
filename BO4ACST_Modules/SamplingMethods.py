@@ -86,7 +86,7 @@ def DetectNoPI2DSquare_func(fixed_s1_arr:np.ndarray,fixed_s2_arr:np.ndarray,dims
     s1PointsIn_lis = []
     s2PointsIn_lis = []
     for s1_sca,s2_sca in zip(fixed_s1_arr,fixed_s2_arr):
-        if s1_sca > dims_li[0]["bounds"][0] and s1_sca < dims_li[0]["bounds"][1] and s2_sca > dims_li[1]["bounds"][0] and s2_sca < dims_li[1]["bounds"][1]:
+        if s1_sca > dims_li[0].bounds[0] and s1_sca < dims_li[0].bounds[1] and s2_sca > dims_li[1].bounds[0] and s2_sca < dims_li[1].bounds[1]:
             NoPI_int += 1
             s1PointsIn_lis.append(s1_sca)
             s2PointsIn_lis.append(s2_sca)
@@ -112,7 +112,7 @@ def DetectNoPI3DCube_func(fixed_x1_arr:np.ndarray,fixed_x2_arr:np.ndarray,fixed_
     x2PointsIn_lis = []
     x3PointsIn_lis = []
     for x1_sca,x2_sca,x3_sca in zip(fixed_x1_arr,fixed_x2_arr,fixed_x3_arr):
-        if x1_sca > Parameters_lis[0]["bounds"][0] and x1_sca < Parameters_lis[0]["bounds"][1] and x2_sca > Parameters_lis[1]["bounds"][0] and x2_sca < Parameters_lis[1]["bounds"][1] and x3_sca > Parameters_lis[2]["bounds"][0] and x3_sca < Parameters_lis[2]["bounds"][1]:
+        if x1_sca > Parameters_lis[0].bounds[0] and x1_sca < Parameters_lis[0].bounds[1] and x2_sca > Parameters_lis[1].bounds[0] and x2_sca < Parameters_lis[1].bounds[1] and x3_sca > Parameters_lis[2].bounds[0] and x3_sca < Parameters_lis[2].bounds[1]:
             NoPI_int += 1
             x1PointsIn_lis.append(x1_sca)
             x2PointsIn_lis.append(x2_sca)
@@ -132,15 +132,15 @@ class OneDim_class():
             x_mat = matrix, a matrix of the x arrays desired
         """
         import numpy as np
-        # delta_sca = Parameters_lis[0]["bounds"][1] - Parameters_lis[0]["bounds"][0]
-        delta_sca = Parameters_lis[0]["bounds"][1] - Parameters_lis[0]["bounds"][0]
+        # delta_sca = Parameters_lis[0].bounds[1] - Parameters_lis[0].bounds[0]
+        delta_sca = Parameters_lis[0].bounds[1] - Parameters_lis[0].bounds[0]
         segments_sca = delta_sca / (NoSD_int - 1)
         s_li = []
         for i in range(NoSD_int):
             if i == 0:
-                s_li.append(Parameters_lis[0]["bounds"][0])
+                s_li.append(Parameters_lis[0].bounds[0])
             elif i == 1:
-                s_li.append(Parameters_lis[0]["bounds"][0] + segments_sca)
+                s_li.append(Parameters_lis[0].bounds[0] + segments_sca)
             elif i > 1:
                 s_li.append(s_li[len(s_li)-1] + segments_sca)
         x_arr = np.array(s_li)
@@ -157,7 +157,7 @@ class OneDim_class():
             x_mat = matrix, a matrix of the x arrays desired
         """
         import numpy as np
-        s_li = np.random.uniform(Parameters_lis[0]["bounds"][0],Parameters_lis[0]["bounds"][1],NoSD_flt)
+        s_li = np.random.uniform(Parameters_lis[0].bounds[0],Parameters_lis[0].bounds[1],NoSD_flt)
         x_arr = np.array(s_li)
         # x_mat = np.array([x_arr])
         return x_arr
@@ -173,18 +173,18 @@ class OneDim_class():
         """
         import numpy as np
         from scipy.stats import qmc
-        delta_sca = Parameters_lis[0]["bounds"][1] - Parameters_lis[0]["bounds"][0]
+        delta_sca = Parameters_lis[0].bounds[1] - Parameters_lis[0].bounds[0]
         step_sca = delta_sca / 100
         i = 0
         NoPI = 0
         MaxAttempts = 1000
         while i < MaxAttempts:
             if i == 0:
-                low_sca = Parameters_lis[0]["bounds"][0]
-                high_sca = Parameters_lis[0]["bounds"][1]
+                low_sca = Parameters_lis[0].bounds[0]
+                high_sca = Parameters_lis[0].bounds[1]
             if (i % 250) == 0:
-                low_sca = Parameters_lis[0]["bounds"][0]
-                high_sca = Parameters_lis[0]["bounds"][1]
+                low_sca = Parameters_lis[0].bounds[0]
+                high_sca = Parameters_lis[0].bounds[1]
             base_sca,NoS_sca = NearestSobolBaseFinder_func(NoSD_flt)
             if NoS_sca < NoSD_flt:
                 base_sca,NoS_sca = NearestSobolBaseFinder_func(NoSD_flt * 2)
@@ -192,7 +192,7 @@ class OneDim_class():
             sample_arr = sampler_obj.random_base2(m=base_sca)
             abstract_arr = sample_arr[:,0]
             fixed_arr = SobolFixer(abstract_arr,low_sca,high_sca)
-            NoPI_sca,PointsIn_arr = DetectNoPI1D_func(fixed_arr,Parameters_lis[0]["bounds"][0],Parameters_lis[0]["bounds"][1])
+            NoPI_sca,PointsIn_arr = DetectNoPI1D_func(fixed_arr,Parameters_lis[0].bounds[0],Parameters_lis[0].bounds[1])
             if NoSD_flt == NoPI_sca:
                 break
             low_sca = low_sca - step_sca
@@ -239,9 +239,9 @@ class TwoDim_class():
         for i,dim_xx in zip(range(dims_sca),Parameters_lis):
             VarName_str = f"x_{i}_arr"
             value_arr = []
-            delta_sca = dim_xx["bounds"][1] - dim_xx["bounds"][0]
+            delta_sca = dim_xx.bounds[1] - dim_xx.bounds[0]
             step_sca = delta_sca / (VerticePoints_sca - 1)
-            start_sca = dim_xx["bounds"][0]
+            start_sca = dim_xx.bounds[0]
             for _ in range(VerticePoints_sca):
                 if _ == 0:
                     value_arr.append(start_sca)
@@ -287,13 +287,13 @@ class TwoDim_class():
         """
         import numpy as np
         from scipy.stats import qmc
-        high_s1_sca = dims_li[0]["bounds"][1]
-        high_s2_sca = dims_li[1]["bounds"][1]
-        low_s1_sca = dims_li[0]["bounds"][0]
-        low_s2_sca = dims_li[1]["bounds"][0]
-        delta_s1_sca = dims_li[0]["bounds"][1] - dims_li[0]["bounds"][0]
+        high_s1_sca = dims_li[0].bounds[1]
+        high_s2_sca = dims_li[1].bounds[1]
+        low_s1_sca = dims_li[0].bounds[0]
+        low_s2_sca = dims_li[1].bounds[0]
+        delta_s1_sca = dims_li[0].bounds[1] - dims_li[0].bounds[0]
         step_s1_sca = delta_s1_sca / 100
-        delta_s2_sca = dims_li[1]["bounds"][1] - dims_li[1]["bounds"][0]
+        delta_s2_sca = dims_li[1].bounds[1] - dims_li[1].bounds[0]
         step_s2_sca = delta_s2_sca / 100
         i = 0
         NoPI = 0
@@ -363,9 +363,9 @@ class ThreeDim_class():
         for i,dim_xx in zip(range(dims_sca),Parameters_lis):
             VarName_str = f"x_{i}_arr"
             value_arr = []
-            delta_sca = dim_xx["bounds"][1] - dim_xx["bounds"][0]
+            delta_sca = dim_xx.bounds[1] - dim_xx.bounds[0]
             step_sca = delta_sca / (dims_sca - 1)
-            start_sca = dim_xx["bounds"][0]
+            start_sca = dim_xx.bounds[0]
             for _ in range(VerticePoints_sca):
                 if _ == 0:
                     value_arr.append(start_sca)
@@ -413,17 +413,17 @@ class ThreeDim_class():
         """
         import numpy as np
         from scipy.stats import qmc
-        high_x1_sca = Parameters_lis[0]["bounds"][1]
-        high_x2_sca = Parameters_lis[1]["bounds"][1]
-        high_x3_sca = Parameters_lis[2]["bounds"][1]
-        low_x1_sca = Parameters_lis[0]["bounds"][0]
-        low_x2_sca = Parameters_lis[1]["bounds"][0]
-        low_x3_sca = Parameters_lis[2]["bounds"][0]
-        delta_x1_sca = Parameters_lis[0]["bounds"][1] - Parameters_lis[0]["bounds"][0]
+        high_x1_sca = Parameters_lis[0].bounds[1]
+        high_x2_sca = Parameters_lis[1].bounds[1]
+        high_x3_sca = Parameters_lis[2].bounds[1]
+        low_x1_sca = Parameters_lis[0].bounds[0]
+        low_x2_sca = Parameters_lis[1].bounds[0]
+        low_x3_sca = Parameters_lis[2].bounds[0]
+        delta_x1_sca = Parameters_lis[0].bounds[1] - Parameters_lis[0].bounds[0]
         step_x1_sca = delta_x1_sca / 100
-        delta_x2_sca = Parameters_lis[1]["bounds"][1] - Parameters_lis[1]["bounds"][0]
+        delta_x2_sca = Parameters_lis[1].bounds[1] - Parameters_lis[1].bounds[0]
         step_x2_sca = delta_x2_sca / 100
-        delta_x3_sca = Parameters_lis[2]["bounds"][1] - Parameters_lis[2]["bounds"][0]
+        delta_x3_sca = Parameters_lis[2].bounds[1] - Parameters_lis[2].bounds[0]
         step_x3_sca = delta_x3_sca / 100
         i = 0
         NoPI = 0
@@ -520,7 +520,7 @@ class McIntersiteProj_class():
         for i in range(CandidateSamples_flt):
             Candidate_lis = []
             for j in range(len(Parameters_lis)):
-                Candidate_lis.append(np.random.uniform(Parameters_lis[j].get("bounds")[0],Parameters_lis[j].get("bounds")[1]))
+                Candidate_lis.append(np.random.uniform(Parameters_lis[j].bounds[0],Parameters_lis[j].bounds[1]))
             Candidate_arr = np.array([Candidate_lis])
             Candidate_mat = np.append(arr=Candidate_mat,values=Candidate_arr,axis=0)
         return Candidate_mat

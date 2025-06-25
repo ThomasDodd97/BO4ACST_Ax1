@@ -582,12 +582,14 @@ class CSTMethods_class():
         return YoungsModulus_flt
         
     def UltimateCompressiveStrengther_func(self,CsvRawDataTrialMT_str,DiameterAvg_mm,HeightAvg_mm,DownsamplingFactor_int):
+        print("oioi")
         MiscMethods_obj = MiscMethods_class()
         cst_df = self.DataframeGetter_func(CsvRawDataTrialMT_str)
         corr_df = self.DataframeGetter_func(self.RootPackageLocation_str + self.CorrectionalFilePath_str)
         cst_df = self.DataFrameCorrector(cst_df,corr_df)
         cst_df = self.StressCalculator_func(cst_df,DiameterAvg_mm)
         cst_df = self.StrainCalculator_func(cst_df,HeightAvg_mm)
+        print("oioi2")
         FullResCst_arr = self.PandasToNumpy_func(cst_df)
         cst_arr = self.PandasToDownsampledNumpy_func(cst_df,DownsamplingFactor_int)
         ucs_flt = self.UltimateCompressiveStrengthFinder(FullResCst_arr)
