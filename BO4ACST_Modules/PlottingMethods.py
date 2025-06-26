@@ -323,5 +323,10 @@ class PlottingMethods_class(object):
             plt.ylabel(OptimisationSetup_obj.MetricTwoDescription_str)
             plt.vlines(x=MetricOneThreshold,ymin=MetricTwoThreshold,ymax=np.max(np.array(ObjectiveData_lis[1]))*1.2)
             plt.hlines(y=MetricTwoThreshold,xmin=MetricOneThreshold,xmax=np.max(np.array(ObjectiveData_lis[0]))*1.2)
-            plt.xlim(0,np.max(np.array(ObjectiveData_lis[0]))*1.2)
-            plt.ylim(0,np.max(np.array(ObjectiveData_lis[1]))*1.2)
+            plt.xlim(np.min(np.array(ObjectiveData_lis[0]))*0.8,np.max(np.array(ObjectiveData_lis[0]))*1.2)
+            plt.ylim(np.min(np.array(ObjectiveData_lis[1]))*0.8,np.max(np.array(ObjectiveData_lis[1]))*1.2)
+    def MultiObjectiveOptimisationProgressionPlot(self,AxClient_obj,OptimisationSetup_obj):
+        print("Hello World")
+        # This will plot the hypervolume as a whole and its size changes through time as we iterate.
+        # This is of interest as it describes the progress made in pushing the pareto front forwards.
+        # It will hopefully increase as we optimise.
