@@ -147,6 +147,80 @@ class PlottingMethods_class(object):
 
             iplot=interactive(plotter,E=widgets.IntSlider(value=25, description='Elevation', max=90, min=-90, step=5),A = widgets.IntSlider(value=55, description='Azimuth', max=90, min=-90, step=5),PointsToDisplay_int= widgets.IntSlider(min=SequentialIterationsToDisplayMin_int,max=SequentialIterationsToDisplayMax_int,step=SequentialIterationsToDisplayStep_int))
             return iplot
+
+    def InteractiveSamplesOverviewPlotMultiobjective(self,AxClient_obj,OptimisationSetup_obj):
+        # Get the data to be handled.
+        df = AxClient_obj.summarize()
+        # Get the names of all the parameters.
+        ParameterNames_lis = []
+        for i in OptimisationSetup_obj.Parameters_lis:
+            ParameterNames_lis.append(i.name)
+
+        # Get the index values of the prior and sequential samples.
+        PriorIdx_lis = []
+        SequentialIdx_lis = []
+        for i in df.index:
+            if i <= OptimisationSetup_obj.NoOfPriorSamples_int - 1:
+                PriorIdx_lis.append(i)
+            elif i <= OptimisationSetup_obj.MaxNoOfTrials_int:
+                SequentialIdx_lis.append(i)
+
+        # Create a blank column of colours.
+        df['Color'] = None
+
+        # Set the generation methods accordingly.
+        for i in PriorIdx_lis:
+            df.at[i,'generation_method'] = OptimisationSetup_obj.DeterministicSamplingMethod_str
+        
+        for i in df.index:
+            if df.at[i,'generation_method'] == "grid":
+                df.at[i,'Color'] = str('#588157')
+            elif df.at[i,'generation_method'] == "pseudorandom":
+                df.at[i,'Color'] = str('#3a5a40')
+            elif df.at[i,'generation_method'] == "quasirandom":
+                df.at[i,'Color'] = str('#344e41')
+            elif df.at[i,'generation_method'] == "BoTorch":
+                df.at[i,'Color'] = str('#669bbc')
+            elif df.at[i,'generation_method'] == "Manual":
+                df.at[i,'Color'] = str('#669bbc')
+        
+        SequentialIterationsToDisplayStep_int = OptimisationSetup_obj.NoOfTrialsPerIteration_int
+        SequentialIterationsToDisplayMin_int = OptimisationSetup_obj.NoOfPriorSamples_int
+        SequentialIterationsToDisplayMax_int = SequentialIterationsToDisplayMin_int + len(SequentialIdx_lis)
+        if len(OptimisationSetup_obj.Parameters_lis) == 3:
+            plt.close("all")
+            print("3D Interactive Plot")
+
+            def plotter(E,A,PointsToDisplay_int):
+                IndexPoints_lis = []
+                for i in range(int(PointsToDisplay_int)):
+                    IndexPoints_lis.append(i)
+                Specific_df = df.iloc[IndexPoints_lis]
+
+                fig=plt.figure(figsize=[10,10])
+                ax=plt.axes(projection='3d')
+
+                x = np.array(Specific_df[f'{ParameterNames_lis[0]}'])
+                y = np.array(Specific_df[f'{ParameterNames_lis[1]}'])
+                z = np.array(Specific_df[f'{ParameterNames_lis[2]}'])
+
+                p = ax.scatter(x,y,z,cmap="plasma",s=50)
+
+                ax.view_init(elev=E,azim=A)
+                ax.set_xlabel(r"$x_1$",fontsize=20)
+                ax.set_ylabel(r'$x_2$',fontsize=20)
+                ax.set_zlabel(r'$x_3$',fontsize=20)
+                ax.set_box_aspect(aspect=None, zoom=0.8)
+                ax.set_xlim(OptimisationSetup_obj.Parameters_lis[0].bounds[0],OptimisationSetup_obj.Parameters_lis[0].bounds[1])
+                ax.set_ylim(OptimisationSetup_obj.Parameters_lis[1].bounds[0],OptimisationSetup_obj.Parameters_lis[1].bounds[1])
+                ax.set_zlim(OptimisationSetup_obj.Parameters_lis[2].bounds[0],OptimisationSetup_obj.Parameters_lis[2].bounds[1])
+                
+                plt.colorbar(p,shrink=0.5)
+                plt.show()
+
+            iplot=interactive(plotter,E=widgets.IntSlider(value=25, description='Elevation', max=90, min=-90, step=5),A = widgets.IntSlider(value=55, description='Azimuth', max=90, min=-90, step=5),PointsToDisplay_int= widgets.IntSlider(min=SequentialIterationsToDisplayMin_int,max=SequentialIterationsToDisplayMax_int,step=SequentialIterationsToDisplayStep_int))
+            return iplot
+    
     def InteractiveFunctionPlot(self,AxClient_obj,OptimisationSetup_obj,TypeOfJob_str,Resolution_int):
         # Get the data to be handled.
         df = AxClient_obj.summarize()

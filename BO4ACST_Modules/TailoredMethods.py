@@ -1386,6 +1386,197 @@ class Method20250625Dim3_class():
         BackupVariablesArrays_mat = np.array([RunningTrialsIdx_arr,j1_arr,j2_arr,x1_arr,x2_arr,x3_arr,a1_arr,a2_arr,a3_arr,a4_arr,a5_arr,a6_arr,a7_arr,a8_arr,a9_arr,a10_arr,a11_arr,b1_arr,b2_arr,b3_arr,b4_arr,c1_arr,c2_arr,c3_arr])
         BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
 
+class Method20250627Dim3_class():
+    """
+    This class governs the tailored 3D experiment that involves the
+    synthesis of IUPR1. It is associated with a wider experiment which
+    focusses upon optimising the curing system to be used with the
+    2 stage bio-based thermosetting systems researched.
+    [THIS IS AN ADAPTED FORM OF THE EXPERIMENT FOR STYRENE-BASED RESIN SYSTEM]
+
+    It is to be carried out as follows:
+    UP1 + STY -> StockUPR1      [c1]    (Carried out separate from optimisation routine)
+    CS + DBP -> I1              [c2]    (Carried out by the manufacturer of the initiating powder I1)
+    StockUPR1 + STY -> UPR1     [x1]    (Operator changes this during optimisation routine)
+    I1 + CS -> I2               [x2]    (Operator changes this during optimisation routine)
+    UPR1 + I2 -> IUPR1          [x3]    (Operator changes this during optimisation routine)
+
+    Once the function has aided the operator in the preparation of the
+    samples it makes sure to save notes about all the variables in a backup
+    csv so that a human can return to any sample and recreate it at a later
+    date with ease.
+
+    Specified parameters:
+    j1 = decimal percentage w/w concentration of the UP1 in StockUPR1
+    j2 = decimal percentage w/w concentration of the CS in I1
+    x1 = decimal percentage w/w concentration of the StockUPR1 in UPR1
+    x2 = decimal percentage w/w concentration of the I1 in I2
+    x3 = decimal percentage w/w concentration of the UPR1 in IUPR1
+    a1 = Mass of UP1 in Stock-UPR1
+    a2 = Mass of STY in Stock-UPR1
+    a3 = Mass of Stock-UPR1 in UPR1
+    a4 = Mass of CS in I1
+    a5 = Mass of DBP in I1
+    a6 = Mass of I1 in I2
+    a7 = Mass of STY in UPR1
+    a8 = Mass of UPR1 in IUPR1
+    a9 = Mass of CS in I2
+    a10 = Mass of I2 in IUPR1
+    a11 = Mass of IUPR1
+    b1 = Total Mass of STY
+    b2 = Total Mass of CS
+    b3 = Total Mass of DBP
+    b4 = Total Mass of UP1
+    c1 = UP1-Normalised Total Mass of STY
+    c2 = UP1-Normalised Total Mass of CS
+    c3 = UP1-Normalised Total Mass of DBP
+    """
+    def __init__(self):
+        self.name = "Tailored Method20250627Dim3 Styrene-based Resin Single-Objective Optimisation Class"
+    def MixingProcedure_func(self,client_obj:AxClient,OptimisationSetup_obj):
+        MiscMethods_obj = MiscMethods_class()
+        PipettingM_obj = PipettingMethods_class()
+
+        print("Retrieving trials.")
+        AllTrials_df = client_obj.summarize()
+        RunningTrials_df = AllTrials_df[AllTrials_df['trial_status'] == "RUNNING"]
+        RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+        RunningTrialsX1_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[0].name}'])
+        RunningTrialsX2_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[1].name}'])
+        RunningTrialsX3_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[2].name}'])
+
+        print(f"\n===== Preliminary Setup =====")
+        print(f"Pre-Heat the Oven to {OptimisationSetup_obj.CuringRegime_lis[0].get('temperature_oc_flt')}oC.")
+        MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+        print(f"\n===== Initial Pouring of StockUPR1 =====")
+        a3_g_arr = np.empty(0)
+        print(f"Use a P10mL pipette set to 2 ml to transfer StockUPR1 to {len(RunningTrialsIdx_arr)} mould gaps.")
+        for TrialIdx_int,RunningTrialsX1_flt,RunningTrialsX2_flt,RunningTrialsX3_flt in zip(RunningTrialsIdx_arr,RunningTrialsX1_arr,RunningTrialsX2_arr,RunningTrialsX3_arr):
+            j1_flt = OptimisationSetup_obj.StockUPR1_UP1vsDeI_Constant_DecPct_flt   # Decimalised Percentage UP1 in StockUPR1
+            j2_flt = OptimisationSetup_obj.StockI1_CSvsBP_Constant_DecPct_flt       # Decimalised Percentage CS in I1
+            j3_flt = OptimisationSetup_obj.TargetMassOfIUPR1a11_Constant_g_flt       # Decimalised Percentage CS in I1
+            x1_flt = RunningTrialsX1_flt        # Value of x1
+            x2_flt = RunningTrialsX2_flt        # Value of x2
+            x3_flt = RunningTrialsX3_flt        # Value of x3
+            a3_flt = j3_flt                     # Mass of Stock-UPR1 in UPR1
+            a1_flt = a3_flt*j1_flt              # Mass of UP1 in StockUPR1
+            a2_flt = a3_flt*(1-j1_flt)          # Mass of DeI in StockUPR1
+            a7_flt = (a3_flt/x1_flt)*(1-x1_flt) # Mass of DeI in UPR1 (a1_flt/x1_flt)-a3_flt 
+            a8_flt = a3_flt+a7_flt              # Mass of UPR1 in IUPR1
+            a10_flt = (a8_flt/x3_flt)-a8_flt    # Mass of I2 in IUPR1
+            a6_flt = a10_flt*x2_flt             # Mass of I1 in I2
+            a5_flt = a6_flt*(1-j2_flt)          # Mass of DBP in I1
+            a4_flt = a6_flt*j2_flt              # Mass of CS is I1
+            a9_flt = a10_flt*(1-x2_flt)         # Mass of CS in I2
+            a11_flt = a8_flt+a10_flt            # Mass of IUPR1
+            b1_flt = a5_flt                     # Total Mass of DBP
+            b2_flt = a2_flt+a7_flt              # Total Mass of DEI
+            b3_flt = a4_flt+a9_flt              # Total Mass of CS
+            b4_flt = a1_flt                     # Total Mass of UP1
+            c1_flt = b1_flt/b4_flt              # UP1-Normalised Total Mass of DeI
+            c2_flt = b2_flt/b4_flt              # UP1-Normalised Total Mass of CS
+            c3_flt = b3_flt/b4_flt              # UP1-Normalised Total Mass of DBP
+            c1_flt = (j3_flt/a11_flt)*j3_flt    # Recommended Mass of UP1 at Beginning
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"Recommended mass of Stock-UPR1: {round(c1_flt,2)} g")
+            a3_g_arr = np.append(arr=a3_g_arr,values=MiscMethods_obj.NumericUserInputRetriever_func("Mass of StockUPR1 transferred? (g)"))
+        
+        print(f"\n===== Mixing UPR1 from StockUPR1 & STY =====")
+        j1_arr = np.empty(0)
+        j2_arr = np.empty(0)
+        x1_arr = np.empty(0)
+        x2_arr = np.empty(0)
+        x3_arr = np.empty(0)
+        a1_arr = np.empty(0)
+        a2_arr = np.empty(0)
+        a3_arr = np.empty(0)
+        a4_arr = np.empty(0)
+        a5_arr = np.empty(0)
+        a6_arr = np.empty(0)
+        a7_arr = np.empty(0)
+        a8_arr = np.empty(0)
+        a9_arr = np.empty(0)
+        a10_arr = np.empty(0)
+        a11_arr = np.empty(0)
+        b1_arr = np.empty(0)
+        b2_arr = np.empty(0)
+        b3_arr = np.empty(0)
+        b4_arr = np.empty(0)
+        c1_arr = np.empty(0)
+        c2_arr = np.empty(0)
+        c3_arr = np.empty(0)
+        for TrialIdx_int,a3_g_flt,RunningTrialsX1_flt,RunningTrialsX2_flt,RunningTrialsX3_flt in zip(RunningTrialsIdx_arr,a3_g_arr,RunningTrialsX1_arr,RunningTrialsX2_arr,RunningTrialsX3_arr):
+            j1_flt = OptimisationSetup_obj.StockUPR1_UP1vsDeI_Constant_DecPct_flt   # Decimalised Percentage UP1 in StockUPR1
+            j2_flt = OptimisationSetup_obj.StockI1_CSvsBP_Constant_DecPct_flt       # Decimalised Percentage CS in I1
+            x1_flt = RunningTrialsX1_flt        # Value of x1
+            x2_flt = RunningTrialsX2_flt        # Value of x2
+            x3_flt = RunningTrialsX3_flt        # Value of x3
+            a3_flt = a3_g_flt                   # Mass of Stock-UPR1 in UPR1
+            a1_flt = a3_flt*j1_flt              # Mass of UP1 in StockUPR1
+            a2_flt = a3_flt*(1-j1_flt)          # Mass of DeI in StockUPR1
+            a7_flt = (a3_flt/x1_flt)*(1-x1_flt) # Mass of DeI in UPR1 (a1_flt/x1_flt)-a3_flt 
+            a8_flt = a3_flt+a7_flt              # Mass of UPR1 in IUPR1
+            a10_flt = (a8_flt/x3_flt)-a8_flt    # Mass of I2 in IUPR1
+            a6_flt = a10_flt*x2_flt             # Mass of I1 in I2
+            a5_flt = a6_flt*(1-j2_flt)          # Mass of DBP in I1
+            a4_flt = a6_flt*j2_flt              # Mass of CS is I1
+            a9_flt = a10_flt*(1-x2_flt)         # Mass of CS in I2
+            a11_flt = a8_flt+a10_flt            # Mass of IUPR1
+            b1_flt = a5_flt                     # Total Mass of DBP
+            b2_flt = a2_flt+a7_flt              # Total Mass of DEI
+            b3_flt = a4_flt+a9_flt              # Total Mass of CS
+            b4_flt = a1_flt                     # Total Mass of UP1
+            c1_flt = b1_flt/b4_flt              # UP1-Normalised Total Mass of DeI
+            c2_flt = b2_flt/b4_flt              # UP1-Normalised Total Mass of CS
+            c3_flt = b3_flt/b4_flt              # UP1-Normalised Total Mass of DBP
+            j1_arr = np.append(arr=j1_arr,values=j1_flt)
+            j2_arr = np.append(arr=j2_arr,values=j2_flt)
+            x1_arr = np.append(arr=x1_arr,values=x1_flt)
+            x2_arr = np.append(arr=x2_arr,values=x2_flt)
+            x3_arr = np.append(arr=x3_arr,values=x3_flt)
+            a1_arr = np.append(arr=a1_arr,values=a1_flt)
+            a2_arr = np.append(arr=a2_arr,values=a2_flt)
+            a3_arr = np.append(arr=a3_arr,values=a3_flt)
+            a4_arr = np.append(arr=a4_arr,values=a4_flt)
+            a5_arr = np.append(arr=a5_arr,values=a5_flt)
+            a6_arr = np.append(arr=a6_arr,values=a6_flt)
+            a7_arr = np.append(arr=a7_arr,values=a7_flt)
+            a8_arr = np.append(arr=a8_arr,values=a8_flt)
+            a9_arr = np.append(arr=a9_arr,values=a9_flt)
+            a10_arr = np.append(arr=a10_arr,values=a10_flt)
+            a11_arr = np.append(arr=a11_arr,values=a11_flt)
+            b1_arr = np.append(arr=b1_arr,values=b1_flt)
+            b2_arr = np.append(arr=b2_arr,values=b2_flt)
+            b3_arr = np.append(arr=b3_arr,values=b3_flt)
+            b4_arr = np.append(arr=b4_arr,values=b4_flt)
+            c1_arr = np.append(arr=c1_arr,values=c1_flt)
+            c2_arr = np.append(arr=c2_arr,values=c2_flt)
+            c3_arr = np.append(arr=c3_arr,values=c3_flt)
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"Add {round(a7_flt,3)} g STY")
+            PipetteName_str,TipName_str,NumberOfPipettingRounds_int,PipetteSetting_flt,PipetteSettingUnits_str = PipettingM_obj.MassToVolumeToSettingToStrategy_func(a7_flt,"STY")
+            print(f"Use {PipetteName_str} equipped with {TipName_str}.")
+            print(f"Set to {round(PipetteSetting_flt,3)} {PipetteSettingUnits_str} and make {NumberOfPipettingRounds_int} transfer(s).")
+            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+        
+        print(f"\n===== Mixing I2 from CS & I1 before adding I2 to UPR1 to form IUPR1 =====")
+        for TrialIdx_int,a6_flt,a9_flt in zip(RunningTrialsIdx_arr,a6_arr.tolist(),a9_arr.tolist()):
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"In a pair of weighing boats:")
+            print(f"Add {round(a6_flt,3)} g I1")
+            print(f"Add {round(a9_flt,3)} g CS")
+            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+        print(f"\n===== Curing Regime =====")
+        for counter_int,CuringRegime_dict in enumerate(OptimisationSetup_obj.CuringRegime_lis):
+            print(f"Stage{counter_int+1}: {CuringRegime_dict.get('time_mins_flt')} mins @ {CuringRegime_dict.get('temperature_oc_flt')} oC")
+
+        # Backing up the variables calculated during the trials.
+        BackupVariableNames_lis = ["TrialIdx","j1","j2","x1","x2","x3","a1","a2","a3","a4","a5","a6","a7","a8","a9","a10","a11","b1","b2","b3","b4","c1","c2","c3"]
+        BackupVariablesArrays_mat = np.array([RunningTrialsIdx_arr,j1_arr,j2_arr,x1_arr,x2_arr,x3_arr,a1_arr,a2_arr,a3_arr,a4_arr,a5_arr,a6_arr,a7_arr,a8_arr,a9_arr,a10_arr,a11_arr,b1_arr,b2_arr,b3_arr,b4_arr,c1_arr,c2_arr,c3_arr])
+        BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
+
 class TailoredMethods_class(object):
     def __init__(self):
         self.name = "Outer Class - Tailored Methods Class"
@@ -1398,3 +1589,4 @@ class TailoredMethods_class(object):
         self.Method20250623Dim2 = Method20250623Dim2_class()
         self.Method20250623Dim3 = Method20250623Dim3_class()
         self.Method20250625Dim3 = Method20250625Dim3_class()
+        self.Method20250627Dim3 = Method20250627Dim3_class()

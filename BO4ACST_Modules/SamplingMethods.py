@@ -525,10 +525,10 @@ class McIntersiteProj_class():
             Candidate_mat = np.append(arr=Candidate_mat,values=Candidate_arr,axis=0)
         return Candidate_mat
     def GetNextTrials_func(self,OptimisationSetup_obj,AxClient_obj):
-        TrialsThusFar_df = AxClient_obj.get_trials_data_frame()
+        TrialsThusFar_df = AxClient_obj.summarize()
         ParameterNames_lis = []
         for i in OptimisationSetup_obj.Parameters_lis:
-            ParameterNames_lis.append(i['name'])
+            ParameterNames_lis.append(i.name)
         Trials_df = TrialsThusFar_df[ParameterNames_lis]
         CurrentTrials_mat = Trials_df.to_numpy()
         CandidateSamples_flt = 10000
