@@ -87,6 +87,9 @@ class ExperimentalMethods_class(object):
         elif OptimisationSetup_obj.DeterministicSamplingMethod_str == "manual":
             x_mat = OptimisationSetup_obj.x_mat
             return x_mat
+        elif OptimisationSetup_obj.DeterministicSamplingMethod_str == "custom":
+            if OptimisationSetup_obj.CustomSamplerName_str == "LineTetrahedron4DSampler":
+                return Sampler_obj.custom.LineTetrahedronSampler_func(OptimisationSetup_obj.NoOfPriorSamples_int,OptimisationSetup_obj.Parameters_lis)
     
     def ExperimentInitialiser_func(self,OptimisationSetup_obj):
         """
@@ -292,6 +295,8 @@ class ExperimentalMethods_class(object):
                 TMethods_obj.Method20250625Dim3.MixingProcedure_func(client_obj,OptimisationSetup_obj)
             elif OptimisationSetup_obj.TailoredExperiment_str == "Method20250627Dim3":
                 TMethods_obj.Method20250627Dim3.MixingProcedure_func(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.TailoredExperiment_str == "Method20250817Dim4":
+                TMethods_obj.Method20250817Dim4.MixingProcedure_func(client_obj,OptimisationSetup_obj)
 
     def TrialsCompletor_func(self,client_obj,OptimisationSetup_obj):
         """

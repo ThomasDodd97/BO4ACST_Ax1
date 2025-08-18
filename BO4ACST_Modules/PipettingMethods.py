@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from MiscMethods import MiscMethods_class
 class PipettingMethods_class():
     def __init__(self):
@@ -85,7 +86,11 @@ class PipettingMethods_class():
         """
         TipName_str = PipetteData_dict["pipettes"][f"{PipetteName_str}"].get("DefaultTip")
         return TipName_str
-    def CalibrationDataAvailabilityChecker_func(self,SubstanceInfo_dict:dict,PipetteCalibrationData_dict:dict,PipetteName_str:str,TipName_str:str,PackageLocation_str:str,PipetteDependenciesLocation_str:str)->str:
+
+    def UnitRetriever_func(self,PipetteName_str:str,PipetteData_dict:dict)->str:
+        UnitName_str = PipetteData_dict["pipettes"][f"{PipetteName_str}"].get("settingUnit")
+        return UnitName_str
+    def CalibrationDataAvailabilityChecker_func(self,SubstanceInfo_dict:dict,PipetteCalibrationData_dict:dict,PipetteName_str:str,TipName_str:str,PackageLocation_str:str,PipetteDependenciesLocation_str:str,Temperature_oc_flt:float)->str:
         """
         This function takes data available about the substance in use as well as information available
         about currently held data on calibrations and trawls these using the currently selected pipette
@@ -110,13 +115,13 @@ class PipettingMethods_class():
             PipetteCalibrationMetadata_dict = json.load(f)
         CalibrationName_str = "None"
         for item in PipetteCalibrationMetadata_dict["PipetteCalibration"].items():
-            if item[1].get("pipette") == PipetteName_str and item[1].get("tip") == TipName_str:
+            if item[1].get("pipette") == PipetteName_str and item[1].get("tip") == TipName_str and item[1].get("TemperatureOfSubstanceOC") == Temperature_oc_flt:
                 CalibrationName_str = item[0]
         try:
             if CalibrationName_str == "None":
                 raise Exception()
         except:
-            print(f"No calibrations have been done for this substance with the selected pipette ({PipetteName_str}) and tip ({TipName_str})!")
+            print(f"No calibrations have been done for this substance with the selected pipette ({PipetteName_str}) and tip ({TipName_str}) and subtance temperature!")
         CalibrationDataLocation_str = PackageLocation_str + PipetteDependenciesLocation_str + PipetteCalibrationMetadata_dict["PipetteCalibration"][f"{CalibrationName_str}"].get("location")
         return CalibrationDataLocation_str
     def CalibrationEquationGenerator_func(self,CalibrationDataLocation_str:str)->np.ndarray:
@@ -216,3 +221,12 @@ class PipettingMethods_class():
         # Retrieving a pipetting setting for the strategy.
         PipetteSetting_flt,PipetteSettingUnits_str = self.PipetteSettingFinder_func(NumberOfPipettingRounds_int,SubstanceMass_g_flt,PipetteName_str,PipetteData_dict,CalibrationStraightLineEquationParameters_arr)
         return PipetteName_str,TipName_str,NumberOfPipettingRounds_int,PipetteSetting_flt,PipetteSettingUnits_str
+    def PipettingStrategyElucidator(self,Mass_g_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str):
+        import math
+        df = pd.read_csv(f"{CalibrationDataLocation_str}")
+        MaxSetting_flt = float(df["Setting"][np.argmax(df["Mass_g"])])
+        MaxMass_flt = (MaxSetting_flt - CalibrationStraightLineEquationParameters_arr[1]) / CalibrationStraightLineEquationParameters_arr[0]
+        Pipettings_int = math.ceil(Mass_g_flt / MaxMass_flt)
+        MassPerPipetting = Mass_g_flt / Pipettings_int
+        Setting_flt = (CalibrationStraightLineEquationParameters_arr[0] * MassPerPipetting) + CalibrationStraightLineEquationParameters_arr[1]
+        return Pipettings_int,Setting_flt

@@ -12,7 +12,9 @@
     "CS":{"acronym_str":"CS","name_str":"Calcium sulphate","cas_str":"7778-18-9","mr_flt":136.14},
     "BP":{"acronym_str":"BP","name_str":"Benzoyl peroxide","cas_str":"94-36-0","mr_flt":242.23},
     "THF":{"acronym_str":"THF","name_str":"Tetrahydrofuran","cas_str":"109-99-9","mr_flt":72.107,"density_flt":0.8876},
-    "DmI":{"acronym_str":"DmI","name_str":"Dimethyl itaconate","cas_str":"617-52-7","mr_flt":158.15,"density_flt":1.116}
+    "DmI":{"acronym_str":"DmI","name_str":"Dimethyl itaconate","cas_str":"617-52-7","mr_flt":158.15,"density_flt":1.116},
+    "DpI":{"acronym_str":"DpI","name_str":"Dipropyl itaconate","cas_str":"13401-95-1","mr_flt":214.26},
+    "MM":{"acronym_str":"MM","name_str":"Methyl methacrylate","cas_str":"80-62-6","mr_flt":100.12,"density_flt":0.94}
 },
 "mixtures":{
     "UP1":{"acronym_str":"UP1","name_str":"Unsaturated Polyester 1","PrincipalComponent_str":"IA","SecondaryComponent_str":"PG"},

@@ -1577,6 +1577,263 @@ class Method20250627Dim3_class():
         BackupVariablesArrays_mat = np.array([RunningTrialsIdx_arr,j1_arr,j2_arr,x1_arr,x2_arr,x3_arr,a1_arr,a2_arr,a3_arr,a4_arr,a5_arr,a6_arr,a7_arr,a8_arr,a9_arr,a10_arr,a11_arr,b1_arr,b2_arr,b3_arr,b4_arr,c1_arr,c2_arr,c3_arr])
         BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
 
+class Method20250817Dim4_class():
+    def __init__(self):
+        self.name = "Tailored Method20250817Dim4: A mixed-monomer resin. Optimisation of compressive strength by adaptation of monomer content and overall RD content."
+    def MixingProcedure_func(self,client_obj:AxClient,OptimisationSetup_obj):
+        MiscMethods_obj = MiscMethods_class()
+        ChemicalData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + MiscMethods_obj.ChemicalDependencyFileLocation_str)
+        PipettingM_obj = PipettingMethods_class()
+        from SamplingMethods import CoordinateConverterFromQsToXyz
+        from SamplingMethods import CoordinateConverterFromXyzToAs
+
+        print("Retrieving trials...")
+        AllTrials_df = client_obj.summarize()
+        RunningTrials_df = AllTrials_df[AllTrials_df['trial_status'] == "RUNNING"]
+        RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+
+        RunningTrialsQ1_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[0].name}'])
+        RunningTrialsQ2_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[1].name}'])
+        RunningTrialsQ3_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[2].name}'])
+        RunningTrialsQ4_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[3].name}'])
+
+        qs_mat = np.concat(([RunningTrialsQ2_arr],[RunningTrialsQ3_arr],[RunningTrialsQ4_arr]),axis=0)
+        xyz_mat = CoordinateConverterFromQsToXyz(qs_mat)
+        as_mat = CoordinateConverterFromXyzToAs(xyz_mat)
+        a1_arr = as_mat[0,:]
+        a2_arr = as_mat[1,:]
+        a3_arr = as_mat[2,:]
+        a4_arr = as_mat[3,:]
+
+        print(f"\n===== Preliminary Setup =====")
+        print(f"Pre-Heat the Oven to {OptimisationSetup_obj.CuringRegime_lis[0].get('temperature_oc_flt')}oC.")
+        MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+        RequiredUPR1_g_arr = np.empty(0)
+        RequiredDMI2_g_arr = np.empty(0)
+        for TrialIdx_int,RunningTrialsQ1_flt,RunningTrialsQ2_flt,RunningTrialsQ3_flt,RunningTrialsQ4_flt,RunningTrialsA1_flt,RunningTrialsA2_flt,RunningTrialsA3_flt,RunningTrialsA4_flt in zip(RunningTrialsIdx_arr,RunningTrialsQ1_arr,RunningTrialsQ2_arr,RunningTrialsQ3_arr,RunningTrialsQ4_arr,a1_arr,a2_arr,a3_arr,a4_arr):    
+            q1_flt = RunningTrialsQ1_flt        # Ratio of UP (vs RD) in UPR2 (dec. %)
+            q2_flt = RunningTrialsQ2_flt        # Abstract x-axis simplex coordinates (Tetrahedron Parameter Space)
+            q3_flt = RunningTrialsQ3_flt        # Abstract y-axis simplex coordinates (Tetrahedron Parameter Space)
+            q4_flt = RunningTrialsQ4_flt        # Abstract z-axis simplex coordinates (Tetrahedron Parameter Space)
+
+            a1_flt = RunningTrialsA1_flt        # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
+            a2_flt = RunningTrialsA2_flt        # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
+            a3_flt = RunningTrialsA3_flt        # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
+            a4_flt = RunningTrialsA4_flt        # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
+
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR1 (vs I2) in IUPR1 (dec. %)
+            j2_flt = OptimisationSetup_obj.j2_I2_I1vsCS_flt                             # Percentage I1 (vs CS) in I2 (dec. %)
+            j3_flt = OptimisationSetup_obj.j3_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
+            j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I1 (dec. %)
+            j5_flt = OptimisationSetup_obj.j5_RD1_DMI1vsDEI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DMI1 (vs DEI1,DPI1,MM1) in RD1 (#)
+            j6_flt = OptimisationSetup_obj.j6_RD1_DEI1vsDMI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DEI1 (vs DMI1,DPI1,MM1) in RD1 (#)
+            j7_flt = OptimisationSetup_obj.j7_RD1_DPI1vsDMI1vsDEI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DPI1 (vs DMI1,DEI1,MM1) in RD1 (#)
+            j8_flt = OptimisationSetup_obj.j8_RD1_MM1vsDMI1vsDEI1vsDPI1_Stoich_flt      # Stoichiometric ratio value for MM1 (vs DMI1,DEI1,DPI1) in RD1 (#)
+            j9_flt = OptimisationSetup_obj.j9_RD1_Stoich_flt                            # Stoichiometric ratio value for RD1 (product of DMI1,DEI1,DPI1,MM1) (#)
+            j10_flt = OptimisationSetup_obj.j10_IUPR_TargetMass_flt                     # Target mass of IUPR (g)
+            j11_flt = OptimisationSetup_obj.j11_UPR1_InitGuessMass_flt                  # Guesstimated mass of UPR1 (g)
+
+            m1_flt = ChemicalData_dict['chemicals']['DmI']['mr_flt']    # Molecular mass of DMI (g mol^-1)
+            m2_flt = ChemicalData_dict['chemicals']['DeI']['mr_flt']    # Molecular mass of DEI (g mol^-1)
+            m3_flt = ChemicalData_dict['chemicals']['DpI']['mr_flt']    # Molecular mass of DPI (g mol^-1)
+            m4_flt = ChemicalData_dict['chemicals']['MM']['mr_flt']     # Molecular mass of MM (g mol^-1)
+            m5_flt = m1_flt+m2_flt+m3_flt+m4_flt                        # Molecular mass of RD mixture (g mol^-1)
+
+            b1_flt = j11_flt                                    # Mass of UPR1 (g)
+            b2_flt = j3_flt*b1_flt                              # Mass of UP (vs RD1) in UPR1 (g)
+            b3_flt = (1-j3_flt)*b1_flt                          # Mass of RD1 (vs UP) in UPR1 (g)
+            b4_flt = (((b3_flt/m5_flt)/j9_flt)*j5_flt)*m1_flt   # Mass of DMI1 (vs DEI1,DPI1,MM1) in RD1 (g)
+            b5_flt = (((b3_flt/m5_flt)/j9_flt)*j6_flt)*m2_flt   # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
+            b6_flt = (((b3_flt/m5_flt)/j9_flt)*j7_flt)*m3_flt   # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
+            b7_flt = (((b3_flt/m5_flt)/j9_flt)*j8_flt)*m4_flt   # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
+            b8_flt = (b2_flt/q1_flt)                            # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
+            b9_flt = b8_flt-b3_flt                              # Mass of RD2 (vs UPR1) in UPR2 (g)
+            b10_flt = a1_flt+a2_flt+a3_flt+a4_flt               # Stoichiometric value of RD (product of DMI,DEI,DPI,MM) (#)
+            b11_flt = (((b9_flt/m5_flt)/b10_flt)*a1_flt)*m1_flt # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
+            b12_flt = (((b9_flt/m5_flt)/b10_flt)*a2_flt)*m2_flt # Mass of DEI2 (vs DMI2,DPI2,MM2) in RD2 (g)
+            b13_flt = (((b9_flt/m5_flt)/b10_flt)*a3_flt)*m3_flt # Mass of DPI2 (vs DMI2,DEI2,MM2) in RD2 (g)
+            b14_flt = (((b9_flt/m5_flt)/b10_flt)*a4_flt)*m4_flt # Mass of MM2 (vs DMI2,DEI2,DPI2) in RD2 (g)
+            b15_flt = b4_flt+b11_flt                            # Mass of DMI (vs DEI,DPI,MM) in RD (g)
+            b16_flt = b5_flt+b12_flt                            # Mass of DEI (vs DMI,DPI,MM) in RD (g)
+            b17_flt = b6_flt+b13_flt                            # Mass of DPI (vs DMI,DEI,MM) in RD (g)
+            b18_flt = b7_flt+b14_flt                            # Mass of MM (vs DMI,DEI,DPI) in RD (g)
+            b19_flt = (b15_flt/m1_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
+            b20_flt = (b16_flt/m2_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
+            b21_flt = (b17_flt/m3_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
+            b22_flt = (b18_flt/m4_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
+            b23_flt = b8_flt+b2_flt                             # Mass of UPR2 (vs I2) in IUPR (g)
+            b24_flt = (b23_flt/j1_flt)*(1-j1_flt)               # Mass of I2 (vs UPR2) in IUPR (g)
+            b25_flt = j2_flt*b24_flt                            # Mass of I1 (vs CS2) in I2 (g)
+            b26_flt = (1-j2_flt)*b24_flt                        # Mass of CS2 (vs I1) in I2 (g)
+            b27_flt = (1-j4_flt)*b25_flt                        # Mass of DBP (vs CS1) in I1 (g)
+            b28_flt = j4_flt*b25_flt                            # Mass of CS1 (vs DBP) in I1 (g)
+            b29_flt = b26_flt+b28_flt                           # Mass of CS (vs DBP) in I2 (g)
+            b30_flt = b23_flt+b24_flt                           # Mass of IUPR (g)
+            b31_flt = (j10_flt/b30_flt)*j11_flt                 # Suggested mass of UPR1 to achieve target mass of IUPR (g) (uses b1)
+
+            RequiredUPR1_g_arr = np.append(RequiredUPR1_g_arr,b31_flt)
+            RequiredDMI2_g_arr = np.append(RequiredDMI2_g_arr,b11_flt)
+        
+        RequiredDMI2_g_float = np.sum(RequiredDMI2_g_arr)
+
+        print(f"Place {round(RequiredDMI2_g_float,2)} g of DMI into a heated vessel to melt.")
+        MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+        
+        print(f"\n===== Initial Pouring of UPR1 =====")
+        b1_g_arr = np.empty(0)
+        for TrialIdx_int,TargetMassOfUPR1_g_float in zip(RunningTrialsIdx_arr,RequiredUPR1_g_arr):
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"Use a pasteur pipette to transfer around {round(TargetMassOfUPR1_g_float,2)} g UPR1 to {len(RunningTrialsIdx_arr)} to the silicone mould gap.")
+            b1_g_arr = np.append(arr=b1_g_arr,values=MiscMethods_obj.NumericUserInputRetriever_func("Mass of StockUPR1 transferred? (g)"))
+
+        print(f"\n===== Mixing UPR2 from UPR1 & RD2 =====")
+        BackupVariableNames_lis = ["TrialIdx","q1","q2","q3","q4","a1","a2","a3","a4","j1","j2","j3","j4","j5","j6","j7","j8","j9","j10","j11","m1","m2","m3","m4","m5","b1","b2","b3","b4","b5","b6","b7","b8","b9","b10","b11","b12","b13","b14","b15","b16","b17","b18","b19","b20","b21","b22","b23","b24","b25","b26","b27","b28","b29","b30","b31"]
+        
+        BackupVariablesMatrix_lis = []
+        for i in BackupVariableNames_lis:
+            BackupVariablesMatrix_lis.append(np.empty(0))
+
+        for TrialIdx_int,b1_g_flt,RunningTrialsQ1_flt,RunningTrialsQ2_flt,RunningTrialsQ3_flt,RunningTrialsQ4_flt,RunningTrialsA1_flt,RunningTrialsA2_flt,RunningTrialsA3_flt,RunningTrialsA4_flt in zip(RunningTrialsIdx_arr,b1_g_arr,RunningTrialsQ1_arr,RunningTrialsQ2_arr,RunningTrialsQ3_arr,RunningTrialsQ4_arr,a1_arr,a2_arr,a3_arr,a4_arr):
+            q1_flt = RunningTrialsQ1_flt        # Ratio of UP (vs RD) in UPR2 (dec. %)
+            q2_flt = RunningTrialsQ2_flt        # Abstract x-axis simplex coordinates (Tetrahedron Parameter Space)
+            q3_flt = RunningTrialsQ3_flt        # Abstract y-axis simplex coordinates (Tetrahedron Parameter Space)
+            q4_flt = RunningTrialsQ4_flt        # Abstract z-axis simplex coordinates (Tetrahedron Parameter Space)
+            q_vals_lis = [q1_flt,q2_flt,q3_flt,q4_flt]
+
+            a1_flt = RunningTrialsA1_flt        # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
+            a2_flt = RunningTrialsA2_flt        # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
+            a3_flt = RunningTrialsA3_flt        # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
+            a4_flt = RunningTrialsA4_flt        # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
+            a_vals_lis = [a1_flt,a2_flt,a3_flt,a4_flt]
+
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR1 (vs I2) in IUPR1 (dec. %)
+            j2_flt = OptimisationSetup_obj.j2_I2_I1vsCS_flt                             # Percentage I1 (vs CS) in I2 (dec. %)
+            j3_flt = OptimisationSetup_obj.j3_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
+            j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I1 (dec. %)
+            j5_flt = OptimisationSetup_obj.j5_RD1_DMI1vsDEI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DMI1 (vs DEI1,DPI1,MM1) in RD1 (#)
+            j6_flt = OptimisationSetup_obj.j6_RD1_DEI1vsDMI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DEI1 (vs DMI1,DPI1,MM1) in RD1 (#)
+            j7_flt = OptimisationSetup_obj.j7_RD1_DPI1vsDMI1vsDEI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DPI1 (vs DMI1,DEI1,MM1) in RD1 (#)
+            j8_flt = OptimisationSetup_obj.j8_RD1_MM1vsDMI1vsDEI1vsDPI1_Stoich_flt      # Stoichiometric ratio value for MM1 (vs DMI1,DEI1,DPI1) in RD1 (#)
+            j9_flt = OptimisationSetup_obj.j9_RD1_Stoich_flt                            # Stoichiometric ratio value for RD1 (product of DMI1,DEI1,DPI1,MM1) (#)
+            j10_flt = OptimisationSetup_obj.j10_IUPR_TargetMass_flt                     # Target mass of IUPR (g)
+            j11_flt = OptimisationSetup_obj.j11_UPR1_InitGuessMass_flt                  # Guesstimated mass of UPR1 (g)
+            j_vals_lis = [j1_flt,j2_flt,j3_flt,j4_flt,j5_flt,j6_flt,j7_flt,j8_flt,j9_flt,j10_flt,j11_flt]
+
+            m1_flt = ChemicalData_dict['chemicals']['DmI']['mr_flt']    # Molecular mass of DMI (g mol^-1)
+            m2_flt = ChemicalData_dict['chemicals']['DeI']['mr_flt']    # Molecular mass of DEI (g mol^-1)
+            m3_flt = ChemicalData_dict['chemicals']['DpI']['mr_flt']    # Molecular mass of DPI (g mol^-1)
+            m4_flt = ChemicalData_dict['chemicals']['MM']['mr_flt']     # Molecular mass of MM (g mol^-1)
+            m5_flt = m1_flt+m2_flt+m3_flt+m4_flt                        # Molecular mass of RD mixture (g mol^-1)
+            m_vals_lis = [m1_flt,m2_flt,m3_flt,m4_flt,m5_flt]
+
+            b1_flt = b1_g_flt                                   # Mass of UPR1 (g)
+            b2_flt = j3_flt*b1_flt                              # Mass of UP (vs RD1) in UPR1 (g)
+            b3_flt = (1-j3_flt)*b1_flt                          # Mass of RD1 (vs UP) in UPR1 (g)
+            b4_flt = (((b3_flt/m5_flt)/j9_flt)*j5_flt)*m1_flt   # Mass of DMI1 (vs DEI1,DPI1,MM1) in RD1 (g)
+            b5_flt = (((b3_flt/m5_flt)/j9_flt)*j6_flt)*m2_flt   # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
+            b6_flt = (((b3_flt/m5_flt)/j9_flt)*j7_flt)*m3_flt   # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
+            b7_flt = (((b3_flt/m5_flt)/j9_flt)*j8_flt)*m4_flt   # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
+            b8_flt = (b2_flt/q1_flt)                            # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
+            b9_flt = b8_flt-b3_flt                              # Mass of RD2 (vs UPR1) in UPR2 (g)
+            b10_flt = a1_flt+a2_flt+a3_flt+a4_flt               # Stoichiometric value of RD (product of DMI,DEI,DPI,MM) (#)
+            b11_flt = (((b9_flt/m5_flt)/b10_flt)*a1_flt)*m1_flt # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
+            b12_flt = (((b9_flt/m5_flt)/b10_flt)*a2_flt)*m2_flt # Mass of DEI2 (vs DMI2,DPI2,MM2) in RD2 (g)
+            b13_flt = (((b9_flt/m5_flt)/b10_flt)*a3_flt)*m3_flt # Mass of DPI2 (vs DMI2,DEI2,MM2) in RD2 (g)
+            b14_flt = (((b9_flt/m5_flt)/b10_flt)*a4_flt)*m4_flt # Mass of MM2 (vs DMI2,DEI2,DPI2) in RD2 (g)
+            b15_flt = b4_flt+b11_flt                            # Mass of DMI (vs DEI,DPI,MM) in RD (g)
+            b16_flt = b5_flt+b12_flt                            # Mass of DEI (vs DMI,DPI,MM) in RD (g)
+            b17_flt = b6_flt+b13_flt                            # Mass of DPI (vs DMI,DEI,MM) in RD (g)
+            b18_flt = b7_flt+b14_flt                            # Mass of MM (vs DMI,DEI,DPI) in RD (g)
+            b19_flt = (b15_flt/m1_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
+            b20_flt = (b16_flt/m2_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
+            b21_flt = (b17_flt/m3_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
+            b22_flt = (b18_flt/m4_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
+            b23_flt = b8_flt+b2_flt                             # Mass of UPR2 (vs I2) in IUPR (g)
+            b24_flt = (b23_flt/j1_flt)*(1-j1_flt)               # Mass of I2 (vs UPR2) in IUPR (g)
+            b25_flt = j2_flt*b24_flt                            # Mass of I1 (vs CS2) in I2 (g)
+            b26_flt = (1-j2_flt)*b24_flt                        # Mass of CS2 (vs I1) in I2 (g)
+            b27_flt = (1-j4_flt)*b25_flt                        # Mass of DBP (vs CS1) in I1 (g)
+            b28_flt = j4_flt*b25_flt                            # Mass of CS1 (vs DBP) in I1 (g)
+            b29_flt = b26_flt+b28_flt                           # Mass of CS (vs DBP) in I2 (g)
+            b30_flt = b23_flt+b24_flt                           # Mass of IUPR (g)
+            b31_flt = (j10_flt/b30_flt)*j11_flt                 # Suggested mass of UPR1 to achieve target mass of IUPR (g) (uses b1)
+            b_vals_lis = [b1_flt,b2_flt,b3_flt,b4_flt,b5_flt,b6_flt,b7_flt,b8_flt,b9_flt,b10_flt,b11_flt,b12_flt,b13_flt,b14_flt,b15_flt,b16_flt,b17_flt,b18_flt,b19_flt,b20_flt,b21_flt,b22_flt,b23_flt,b24_flt,b25_flt,b26_flt,b27_flt,b28_flt,b29_flt,b30_flt,b31_flt]
+
+            var_vals_lis = [TrialIdx_int]+q_vals_lis+a_vals_lis+j_vals_lis+m_vals_lis+b_vals_lis
+            for count,(val,BackupVariable_arr) in enumerate(zip(var_vals_lis,BackupVariablesMatrix_lis)):
+                BackupVariablesMatrix_lis[count] = np.append(BackupVariable_arr,val)
+            MiscMethods_obj = MiscMethods_class()
+            PipettingMethods_obj = PipettingMethods_class()
+            PipetteData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + PipettingMethods_obj.DependencyFileLocation_str)
+            ChemicalData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + MiscMethods_obj.ChemicalDependencyFileLocation_str)
+            pipette_lis = ["P10mL","P200","P20"]
+            PipetteData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + PipettingMethods_obj.DependencyFileLocation_str)
+
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"Add {round(b14_flt,3)} g DMI")
+            SubstanceName_str = "DmI"
+            SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            SubstanceTemperature_flt = 20.0
+            print(f"Use either:")
+            for pipette_str in pipette_lis:
+                print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+                CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+                CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+                Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b14_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+                print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+            # print(f"Add {round(b15_flt,3)} g DEI")
+            # SubstanceName_str = "DeI"
+            # SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            # SubstanceTemperature_flt = 20.0
+            # print(f"Use either:")
+            # for pipette_str in pipette_lis:
+            #     print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+            #     CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+            #     CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+            #     Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b15_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+            #     print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+            # print(f"Add {round(b16_flt,3)} g DPI")
+            # SubstanceName_str = "DpI"
+            # SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            # SubstanceTemperature_flt = 20.0
+            # print(f"Use either:")
+            # for pipette_str in pipette_lis:
+            #     print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+            #     CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+            #     CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+            #     Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b16_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+            #     print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+            # print(f"Add {round(b17_flt,3)} g MM")
+            # SubstanceName_str = "DpI"
+            # SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            # SubstanceTemperature_flt = 20.0
+            # print(f"Use either:")
+            # for pipette_str in pipette_lis:
+            #     print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+            #     CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+            #     CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+            #     Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b17_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+            #     print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+            print(f"\n===== Mixing I2 from CS2 & I1 before adding I2 to UPR2 to form IUPR =====")
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"In a pair of weighing boats:")
+            print(f"Add {round(b21_flt,3)} g I1")
+            print(f"Add {round(b22_flt,3)} g CS2")
+            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+        # Backing up the variables calculated during the trials.
+        BackupVariablesArrays_mat = np.array(BackupVariablesMatrix_lis)
+        BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
+
 class TailoredMethods_class(object):
     def __init__(self):
         self.name = "Outer Class - Tailored Methods Class"
@@ -1590,3 +1847,4 @@ class TailoredMethods_class(object):
         self.Method20250623Dim3 = Method20250623Dim3_class()
         self.Method20250625Dim3 = Method20250625Dim3_class()
         self.Method20250627Dim3 = Method20250627Dim3_class()
+        self.Method20250817Dim4 = Method20250817Dim4_class()
