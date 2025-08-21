@@ -1622,7 +1622,7 @@ class Method20250817Dim4_class():
             a3_flt = RunningTrialsA3_flt        # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
             a4_flt = RunningTrialsA4_flt        # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
 
-            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR1 (vs I2) in IUPR1 (dec. %)
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR2 (vs I2) in IUPR1 (dec. %)
             j2_flt = OptimisationSetup_obj.j2_I2_I1vsCS_flt                             # Percentage I1 (vs CS) in I2 (dec. %)
             j3_flt = OptimisationSetup_obj.j3_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
             j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I1 (dec. %)
@@ -1647,7 +1647,7 @@ class Method20250817Dim4_class():
             b5_flt = (((b3_flt/m5_flt)/j9_flt)*j6_flt)*m2_flt   # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
             b6_flt = (((b3_flt/m5_flt)/j9_flt)*j7_flt)*m3_flt   # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
             b7_flt = (((b3_flt/m5_flt)/j9_flt)*j8_flt)*m4_flt   # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
-            b8_flt = (b2_flt/q1_flt)                            # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
+            b8_flt = (b2_flt/q1_flt)*(1-q1_flt)                 # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
             b9_flt = b8_flt-b3_flt                              # Mass of RD2 (vs UPR1) in UPR2 (g)
             b10_flt = a1_flt+a2_flt+a3_flt+a4_flt               # Stoichiometric value of RD (product of DMI,DEI,DPI,MM) (#)
             b11_flt = (((b9_flt/m5_flt)/b10_flt)*a1_flt)*m1_flt # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
@@ -1707,7 +1707,7 @@ class Method20250817Dim4_class():
             a4_flt = RunningTrialsA4_flt        # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
             a_vals_lis = [a1_flt,a2_flt,a3_flt,a4_flt]
 
-            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR1 (vs I2) in IUPR1 (dec. %)
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR2 (vs I2) in IUPR1 (dec. %)
             j2_flt = OptimisationSetup_obj.j2_I2_I1vsCS_flt                             # Percentage I1 (vs CS) in I2 (dec. %)
             j3_flt = OptimisationSetup_obj.j3_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
             j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I1 (dec. %)
@@ -1734,7 +1734,7 @@ class Method20250817Dim4_class():
             b5_flt = (((b3_flt/m5_flt)/j9_flt)*j6_flt)*m2_flt   # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
             b6_flt = (((b3_flt/m5_flt)/j9_flt)*j7_flt)*m3_flt   # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
             b7_flt = (((b3_flt/m5_flt)/j9_flt)*j8_flt)*m4_flt   # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
-            b8_flt = (b2_flt/q1_flt)                            # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
+            b8_flt = (b2_flt/q1_flt)*(1-q1_flt)                 # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
             b9_flt = b8_flt-b3_flt                              # Mass of RD2 (vs UPR1) in UPR2 (g)
             b10_flt = a1_flt+a2_flt+a3_flt+a4_flt               # Stoichiometric value of RD (product of DMI,DEI,DPI,MM) (#)
             b11_flt = (((b9_flt/m5_flt)/b10_flt)*a1_flt)*m1_flt # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)

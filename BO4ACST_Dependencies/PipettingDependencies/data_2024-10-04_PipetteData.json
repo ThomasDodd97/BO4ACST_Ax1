@@ -15,6 +15,8 @@
     "121-69-7":{"cas":"121-69-7","substance":"Dimethyl aniline","location":"/metadata_2024-10-07_PipetteCalibration_121-69-7.json"},
     "100-42-5":{"cas":"100-42-5","substance":"Styrene","location":"/metadata_2024-10-08_PipetteCalibration_100-42-5.json"},
     "109-99-9":{"cas":"109-99-9","substance":"Tetrahydrofuran","location":"/metadata_2025-03-19_PipetteCalibration_109-99-9.json"},
-    "617-52-7":{"cas":"617-52-7","substance":"Dimethyl itaconate","location":"/metadata_2025-05-12_PipetteCalibration_617-52-7.json"}
+    "617-52-7":{"cas":"617-52-7","substance":"Dimethyl itaconate","location":"/metadata_2025-05-12_PipetteCalibration_617-52-7.json"},
+    "80-62-6":{"cas":"80-62-6","substance":"Methyl methracrylate","location":"/metadata_2025-08-19_PipetteCalibration_80-62-6.json"},
+    "13401-95-1":{"cas":"13401-95-1","substance":"Dipropyl itaconate","location":"/metadata_2025-08-19_PipetteCalibration_13401-95-1.json"}
 }
 }

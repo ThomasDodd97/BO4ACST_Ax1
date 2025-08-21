@@ -356,6 +356,8 @@ class ExperimentalMethods_class(object):
             elif OptimisationSetup_obj.ObjectivesType_str == "OffsetYieldStrength":
                 if TMethods_obj.Method20250518Dim3.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
                     t_arr = TMethods_obj.Method20250310Dim3.TargetRetriever(client_obj,OptimisationSetup_obj)
+        elif OptimisationSetup_obj.TailoredExperiment_str == "Method20250817Dim4":
+            print("We have some work to do on the TrialsCompletor_func for this experiment...")
 
         # A clause is used to check that the target retrieval was successful before attempting final completion.
         if np.sum(t_arr) == float(69.69696969696969):

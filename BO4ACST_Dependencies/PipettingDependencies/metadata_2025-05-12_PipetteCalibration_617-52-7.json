@@ -2,5 +2,8 @@
     "a":{"TemperatureOfSubstanceOC":20.0,"pipette":"P2","tip":"D10","location":"/raw-data_2025-05-12_PipetteCalibration_617-52-7_a.csv"},
     "b":{"TemperatureOfSubstanceOC":20.0,"pipette":"P20","tip":"D200","location":"/raw-data_2025-05-12_PipetteCalibration_617-52-7_b.csv"},
     "c":{"TemperatureOfSubstanceOC":20.0,"pipette":"P200","tip":"D200","location":"/raw-data_2025-05-12_PipetteCalibration_617-52-7_c.csv"},
-    "d":{"TemperatureOfSubstanceOC":20.0,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2025-05-12_PipetteCalibration_617-52-7_d.csv"}
+    "d":{"TemperatureOfSubstanceOC":20.0,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2025-05-12_PipetteCalibration_617-52-7_d.csv"},
+    "e":{"TemperatureOfSubstanceOC":40.0,"pipette":"P20","tip":"D200","location":"/raw-data_2025-08-19_PipetteCalibration_617-52-7_e.csv"},
+    "f":{"TemperatureOfSubstanceOC":40.0,"pipette":"P200","tip":"D200","location":"/raw-data_2025-08-19_PipetteCalibration_617-52-7_f.csv"},
+    "g":{"TemperatureOfSubstanceOC":40.0,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2025-08-19_PipetteCalibration_617-52-7_g.csv"}
 }}
