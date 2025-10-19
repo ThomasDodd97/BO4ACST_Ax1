@@ -240,6 +240,10 @@ class ExperimentalMethods_class(object):
                         x_mat = Sampler_obj.McIntersiteProj.GetNextTrials_func(OptimisationSetup_obj,client_obj)
                         x_mat = x_mat.T
                         self.TrialAppender_func(x_mat,client_obj,OptimisationSetup_obj)
+                    elif OptimisationSetup_obj.SequentialTechnique == "McIntersiteProjTh":
+                        x_mat = Sampler_obj.McIntersiteProjTh.McIntersiteProjTh_func(OptimisationSetup_obj,client_obj)
+                        x_mat = x_mat.T
+                        self.TrialAppender_func(x_mat,client_obj,OptimisationSetup_obj)
 
     def TrialsExecutor_func(self,client_obj,OptimisationSetup_obj):
         """
@@ -357,18 +361,42 @@ class ExperimentalMethods_class(object):
                 if TMethods_obj.Method20250518Dim3.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
                     t_arr = TMethods_obj.Method20250310Dim3.TargetRetriever(client_obj,OptimisationSetup_obj)
         elif OptimisationSetup_obj.TailoredExperiment_str == "Method20250817Dim4":
-            print("We have some work to do on the TrialsCompletor_func for this experiment...")
+            if OptimisationSetup_obj.ObjectivesType_str == "YoungsModulus":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.YMTargetRetriever(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.ObjectivesType_str == "ProportionalityLimit":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.PLTargetRetriever(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.ObjectivesType_str == "YieldBreakPoint":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.YBPTargetRetriever(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.ObjectivesType_str == "ProportionalityLimitVsYoungsModulus":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.PLYMTargetRetriever(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.ObjectivesType_str == "ProportionalityLimitVsYieldBreakPoint":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.PLYBPTargetRetriever(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.ObjectivesType_str == "YieldBreakPointVsYoungsModulus":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.YBPYMTargetRetriever(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.ObjectivesType_str == "ProportionalityLimitVsYieldBreakPointVsYoungsModulus":
+                if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20250817Dim4.PLYBPYMTargetRetriever(client_obj,OptimisationSetup_obj)
 
         # A clause is used to check that the target retrieval was successful before attempting final completion.
         if np.sum(t_arr) == float(69.69696969696969):
             print("Target Retrieval was Unsuccessful...")
         else:
-            # Checking whether or not this method is generating multiobjective array...
-            if len(np.shape(t_arr)) == 2:
-                for RunningTrialsIdx_flt,t_subarr in zip(RunningTrialsIdx_arr,t_arr):
-                    client_obj.complete_trial(trial_index=int(RunningTrialsIdx_flt),raw_data={f"{OptimisationSetup_obj.Metrics_lis[0]}": (t_subarr[0]),f"{OptimisationSetup_obj.Metrics_lis[1]}": (t_subarr[1])})
-                    client_obj.save_to_json_file(OptimisationSetup_obj.ExperimentFilePath_str)
-            else:
+            try:
+                if np.shape(t_arr)[1] == 2:
+                    for RunningTrialsIdx_flt,t_subarr in zip(RunningTrialsIdx_arr,t_arr):
+                        client_obj.complete_trial(trial_index=int(RunningTrialsIdx_flt),raw_data={f"{OptimisationSetup_obj.Metrics_lis[0]}": (t_subarr[0]),f"{OptimisationSetup_obj.Metrics_lis[1]}": (t_subarr[1])})
+                        client_obj.save_to_json_file(OptimisationSetup_obj.ExperimentFilePath_str)
+                elif np.shape(t_arr)[1] == 3:
+                    for RunningTrialsIdx_flt,t_subarr in zip(RunningTrialsIdx_arr,t_arr):
+                        client_obj.complete_trial(trial_index=int(RunningTrialsIdx_flt),raw_data={f"{OptimisationSetup_obj.Metrics_lis[0]}": (t_subarr[0]),f"{OptimisationSetup_obj.Metrics_lis[1]}": (t_subarr[1]),f"{OptimisationSetup_obj.Metrics_lis[2]}": (t_subarr[2])})
+                        client_obj.save_to_json_file(OptimisationSetup_obj.ExperimentFilePath_str)
+            except:
                 for RunningTrialsIdx_flt,t_flt in zip(RunningTrialsIdx_arr,t_arr):
                     client_obj.complete_trial(trial_index=int(RunningTrialsIdx_flt),raw_data={f"{OptimisationSetup_obj.Metrics_lis[0]}": (t_flt)})
                     # The updated ax object is saved, overwriting the old state of the ax experiment.

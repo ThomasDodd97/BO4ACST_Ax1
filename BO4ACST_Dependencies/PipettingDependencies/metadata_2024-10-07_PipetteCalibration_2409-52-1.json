@@ -5,5 +5,5 @@
     "d":{"TemperatureOfSubstanceOC":19.5,"pipette":"P2","tip":"D10","location":"/raw-data_2024-10-09_PipetteCalibration_2409-52-1_d.csv"},
     "e":{"TemperatureOfSubstanceOC":3.0,"pipette":"P20","tip":"D200","location":"/raw-data_2025-08-21_PipetteCalibration_2409-52-1_e.csv"},
     "f":{"TemperatureOfSubstanceOC":3.0,"pipette":"P200","tip":"D200","location":"/raw-data_2025-08-21_PipetteCalibration_2409-52-1_f.csv"},
-    "g":{"TemperatureOfSubstanceOC":3.0,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2025-08-21_PipetteCalibration_2409-52-1_g.csv"},
+    "g":{"TemperatureOfSubstanceOC":3.0,"pipette":"P10mL","tip":"D10mL","location":"/raw-data_2025-08-21_PipetteCalibration_2409-52-1_g.csv"}
 }}

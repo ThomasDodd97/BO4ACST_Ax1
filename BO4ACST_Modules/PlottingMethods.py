@@ -400,7 +400,6 @@ class PlottingMethods_class(object):
             plt.xlim(np.min(np.array(ObjectiveData_lis[0]))*0.8,np.max(np.array(ObjectiveData_lis[0]))*1.2)
             plt.ylim(np.min(np.array(ObjectiveData_lis[1]))*0.8,np.max(np.array(ObjectiveData_lis[1]))*1.2)
     def MultiObjectiveOptimisationProgressionPlot(self,AxClient_obj,OptimisationSetup_obj):
-        print("Hello World")
         # This will plot the hypervolume as a whole and its size changes through time as we iterate.
         # This is of interest as it describes the progress made in pushing the pareto front forwards.
         # It will hopefully increase as we optimise.

@@ -818,7 +818,363 @@ def YMTargetRetrieverMethod20250518_func(client_obj,OptimisationSetup_obj):
         print("Please enter the relevant data into the dimensions csv.")
         t_arr = [float(69.69696969696969)]
         return t_arr
+    
+def PLTargetRetrieverMethod20250903_func(client_obj,OptimisationSetup_obj):
+    """
+    This function finds the proportionality limit. It does this by finding the inflection point (in the same fashion as
+    for calculating the young's modulus), then it takes the stress achieved at this point as the limit of proportionality.
+    """
+    DownsamplingFactor_int = OptimisationSetup_obj.DownsamplingFactor_int
+    HorizonValue_int = OptimisationSetup_obj.HorizonValue_int
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_arr = np.empty(0)
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                t_flt = CSTMethods_obj.ProportionalLimiter_func(CsvRawDataTrialMT_str,DiameterAvg_mm,HeightAvg_mm,DownsamplingFactor_int,HorizonValue_int)
+                t_arr = np.append(arr=t_arr,values=t_flt)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
 
+def PLTargetRetrieverMethod20250911_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_arr = np.empty(0)
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                t_arr = np.append(arr=t_arr,values=LimitOfProportionality_flt)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def YMTargetRetrieverMethod20250911_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_arr = np.empty(0)
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
+                t_arr = np.append(arr=t_arr,values=AbsoluteYoungsModulus_flt)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def YBPTargetRetrieverMethod20250911_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_arr = np.empty(0)
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True)
+                t_arr = np.append(arr=t_arr,values=YieldBreakPoint_flt)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def PLYMTargetRetrieverMethod20250911_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                t1_flt = LimitOfProportionality_flt
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
+                t2_flt = AbsoluteYoungsModulus_flt
+                t_lis.append([t1_flt,t2_flt])
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+
+def YBPYMTargetRetrieverMethod20251019_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=False)
+                t1_flt = YieldBreakPoint_flt
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
+                t2_flt = AbsoluteYoungsModulus_flt
+                t_lis.append([t1_flt,t2_flt])
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def PLYBPTargetRetrieverMethod20251019_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                t1_flt = LimitOfProportionality_flt
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=False)
+                t2_flt = YieldBreakPoint_flt
+                t_lis.append([t1_flt,t2_flt])
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def PLYBPYMTargetRetrieverMethod20251013_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                t1_flt = LimitOfProportionality_flt
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=False) # True
+                t2_flt = YieldBreakPoint_flt
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
+                t3_flt = AbsoluteYoungsModulus_flt
+                t_lis.append([t1_flt,t2_flt,t3_flt])
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+    
 def AddUCSvsYMRetrieverMethod20250518_func(client_obj,OptimisationSetup_obj):
     """
     This function is set up to retrieve mechanical test data and process it before passing
@@ -874,6 +1230,7 @@ class Method20250518Dim3_class():
         self.UCSTargetRetriever = UCSTargetRetrievalMethod20250518_func
         self.YMTargetRetriever = YMTargetRetrieverMethod20250518_func
         self.AddUCSvsYMRetriever = AddUCSvsYMRetrieverMethod20250518_func
+        self.PLTargetRetriever = PLTargetRetrieverMethod20250903_func
 
 def BraninCurrinOne_func(x_1,x_2):
     tens = Tensor([x_1,x_2])
@@ -939,7 +1296,6 @@ def TargetRetrievalMethod20250623_func(client_obj,OptimisationSetup_obj):
                 DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
                 HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
                 CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
-                print('hello3')
                 t2_flt = CSTMethods_obj.YoungsModder_func(CsvRawDataTrialMT_str,DiameterAvg_mm,HeightAvg_mm,DownsamplingFactor_int,HorizonValue_int)
                 print(t2_flt)
                 t1_flt = CSTMethods_obj.UltimateCompressiveStrengther_func(CsvRawDataTrialMT_str,DiameterAvg_mm,HeightAvg_mm,DownsamplingFactor_int)
@@ -1192,6 +1548,7 @@ def TargetRetrievalMethod20250625_func(client_obj,OptimisationSetup_obj):
         print("Please enter the relevant data into the dimensions csv.")
         t_arr = [float(69.69696969696969)]
         return t_arr
+
 
 class Method20250625Dim3_class():
     """
@@ -1580,6 +1937,14 @@ class Method20250627Dim3_class():
 class Method20250817Dim4_class():
     def __init__(self):
         self.name = "Tailored Method20250817Dim4: A mixed-monomer resin. Optimisation of compressive strength by adaptation of monomer content and overall RD content."
+        self.ExecutionChecker = ExecutionCheckerMethod20241024_func
+        self.YMTargetRetriever = YMTargetRetrieverMethod20250911_func
+        self.PLTargetRetriever = PLTargetRetrieverMethod20250911_func
+        self.PLYMTargetRetriever = PLYMTargetRetrieverMethod20250911_func
+        self.YBPTargetRetriever = YBPTargetRetrieverMethod20250911_func
+        self.PLYBPYMTargetRetriever = PLYBPYMTargetRetrieverMethod20251013_func
+        self.PLYBPTargetRetriever = PLYBPTargetRetrieverMethod20251019_func
+        self.YBPYMTargetRetriever = YBPYMTargetRetrieverMethod20251019_func
     def MixingProcedure_func(self,client_obj:AxClient,OptimisationSetup_obj):
         MiscMethods_obj = MiscMethods_class()
         ChemicalData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + MiscMethods_obj.ChemicalDependencyFileLocation_str)
@@ -1617,63 +1982,56 @@ class Method20250817Dim4_class():
             q3_flt = RunningTrialsQ3_flt        # Abstract y-axis simplex coordinates (Tetrahedron Parameter Space)
             q4_flt = RunningTrialsQ4_flt        # Abstract z-axis simplex coordinates (Tetrahedron Parameter Space)
 
-            a1_flt = RunningTrialsA1_flt        # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
-            a2_flt = RunningTrialsA2_flt        # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
-            a3_flt = RunningTrialsA3_flt        # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
-            a4_flt = RunningTrialsA4_flt        # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
+            a1_flt = RunningTrialsA1_flt        # Mole fraction value for DMI (vs DEI,DPI,MM) in RD (#)
+            a2_flt = RunningTrialsA2_flt        # Mole fraction value for DEI (vs DMI,DPI,MM) in RD (#)
+            a3_flt = RunningTrialsA3_flt        # Mole fraction value for DPI (vs DMI,DEI,MM) in RD (#)
+            a4_flt = RunningTrialsA4_flt        # Mole fraction value for MM (vs DMI,DEI,DPI) in RD (#)
 
-            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR2 (vs I2) in IUPR1 (dec. %)
-            j2_flt = OptimisationSetup_obj.j2_I2_I1vsCS_flt                             # Percentage I1 (vs CS) in I2 (dec. %)
-            j3_flt = OptimisationSetup_obj.j3_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
-            j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I1 (dec. %)
-            j5_flt = OptimisationSetup_obj.j5_RD1_DMI1vsDEI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DMI1 (vs DEI1,DPI1,MM1) in RD1 (#)
-            j6_flt = OptimisationSetup_obj.j6_RD1_DEI1vsDMI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DEI1 (vs DMI1,DPI1,MM1) in RD1 (#)
-            j7_flt = OptimisationSetup_obj.j7_RD1_DPI1vsDMI1vsDEI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DPI1 (vs DMI1,DEI1,MM1) in RD1 (#)
-            j8_flt = OptimisationSetup_obj.j8_RD1_MM1vsDMI1vsDEI1vsDPI1_Stoich_flt      # Stoichiometric ratio value for MM1 (vs DMI1,DEI1,DPI1) in RD1 (#)
-            j9_flt = OptimisationSetup_obj.j9_RD1_Stoich_flt                            # Stoichiometric ratio value for RD1 (product of DMI1,DEI1,DPI1,MM1) (#)
-            j10_flt = OptimisationSetup_obj.j10_IUPR_TargetMass_flt                     # Target mass of IUPR (g)
-            j11_flt = OptimisationSetup_obj.j11_UPR1_InitGuessMass_flt                  # Guesstimated mass of UPR1 (g)
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI1_DecPct_flt                  # Percentage UPR2 (vs I) in IUPR1 (dec. %)
+            j2_flt = OptimisationSetup_obj.j2_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
+            j3_flt = OptimisationSetup_obj.j3_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I (dec. %)
+            j4_flt = OptimisationSetup_obj.j4_RD1_DMI1vsDEI1vsDPI1vsMM1_Stoich_flt      # Mole fraction value for DMI1 (vs DEI1,DPI1,MM1) in RD1 (#)
+            j5_flt = OptimisationSetup_obj.j5_RD1_DEI1vsDMI1vsDPI1vsMM1_Stoich_flt      # Mole fraction value for DEI1 (vs DMI1,DPI1,MM1) in RD1 (#)
+            j6_flt = OptimisationSetup_obj.j6_RD1_DPI1vsDMI1vsDEI1vsMM1_Stoich_flt      # Mole fraction value for DPI1 (vs DMI1,DEI1,MM1) in RD1 (#)
+            j7_flt = OptimisationSetup_obj.j7_RD1_MM1vsDMI1vsDEI1vsDPI1_Stoich_flt      # Mole fraction value for MM1 (vs DMI1,DEI1,DPI1) in RD1 (#)
+            j8_flt = OptimisationSetup_obj.j8_IUPR_TargetMass_flt                       # Target mass of IUPR (g)
+            j9_flt = OptimisationSetup_obj.j9_UPR1_InitGuessMass_flt                    # Guesstimated mass of UPR1 (g)
 
             m1_flt = ChemicalData_dict['chemicals']['DmI']['mr_flt']    # Molecular mass of DMI (g mol^-1)
             m2_flt = ChemicalData_dict['chemicals']['DeI']['mr_flt']    # Molecular mass of DEI (g mol^-1)
             m3_flt = ChemicalData_dict['chemicals']['DpI']['mr_flt']    # Molecular mass of DPI (g mol^-1)
             m4_flt = ChemicalData_dict['chemicals']['MM']['mr_flt']     # Molecular mass of MM (g mol^-1)
-            m5_flt = m1_flt+m2_flt+m3_flt+m4_flt                        # Molecular mass of RD mixture (g mol^-1)
 
-            b1_flt = j11_flt                                    # Mass of UPR1 (g)
-            b2_flt = j3_flt*b1_flt                              # Mass of UP (vs RD1) in UPR1 (g)
-            b3_flt = (1-j3_flt)*b1_flt                          # Mass of RD1 (vs UP) in UPR1 (g)
-            b4_flt = (((b3_flt/m5_flt)/j9_flt)*j5_flt)*m1_flt   # Mass of DMI1 (vs DEI1,DPI1,MM1) in RD1 (g)
-            b5_flt = (((b3_flt/m5_flt)/j9_flt)*j6_flt)*m2_flt   # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
-            b6_flt = (((b3_flt/m5_flt)/j9_flt)*j7_flt)*m3_flt   # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
-            b7_flt = (((b3_flt/m5_flt)/j9_flt)*j8_flt)*m4_flt   # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
-            b8_flt = (b2_flt/q1_flt)*(1-q1_flt)                 # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
-            b9_flt = b8_flt-b3_flt                              # Mass of RD2 (vs UPR1) in UPR2 (g)
-            b10_flt = a1_flt+a2_flt+a3_flt+a4_flt               # Stoichiometric value of RD (product of DMI,DEI,DPI,MM) (#)
-            b11_flt = (((b9_flt/m5_flt)/b10_flt)*a1_flt)*m1_flt # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
-            b12_flt = (((b9_flt/m5_flt)/b10_flt)*a2_flt)*m2_flt # Mass of DEI2 (vs DMI2,DPI2,MM2) in RD2 (g)
-            b13_flt = (((b9_flt/m5_flt)/b10_flt)*a3_flt)*m3_flt # Mass of DPI2 (vs DMI2,DEI2,MM2) in RD2 (g)
-            b14_flt = (((b9_flt/m5_flt)/b10_flt)*a4_flt)*m4_flt # Mass of MM2 (vs DMI2,DEI2,DPI2) in RD2 (g)
-            b15_flt = b4_flt+b11_flt                            # Mass of DMI (vs DEI,DPI,MM) in RD (g)
-            b16_flt = b5_flt+b12_flt                            # Mass of DEI (vs DMI,DPI,MM) in RD (g)
-            b17_flt = b6_flt+b13_flt                            # Mass of DPI (vs DMI,DEI,MM) in RD (g)
-            b18_flt = b7_flt+b14_flt                            # Mass of MM (vs DMI,DEI,DPI) in RD (g)
-            b19_flt = (b15_flt/m1_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
-            b20_flt = (b16_flt/m2_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
-            b21_flt = (b17_flt/m3_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
-            b22_flt = (b18_flt/m4_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
-            b23_flt = b8_flt+b2_flt                             # Mass of UPR2 (vs I2) in IUPR (g)
-            b24_flt = (b23_flt/j1_flt)*(1-j1_flt)               # Mass of I2 (vs UPR2) in IUPR (g)
-            b25_flt = j2_flt*b24_flt                            # Mass of I1 (vs CS2) in I2 (g)
-            b26_flt = (1-j2_flt)*b24_flt                        # Mass of CS2 (vs I1) in I2 (g)
-            b27_flt = (1-j4_flt)*b25_flt                        # Mass of DBP (vs CS1) in I1 (g)
-            b28_flt = j4_flt*b25_flt                            # Mass of CS1 (vs DBP) in I1 (g)
-            b29_flt = b26_flt+b28_flt                           # Mass of CS (vs DBP) in I2 (g)
-            b30_flt = b23_flt+b24_flt                           # Mass of IUPR (g)
-            b31_flt = (j10_flt/b30_flt)*j11_flt                 # Suggested mass of UPR1 to achieve target mass of IUPR (g) (uses b1)
+            b1_flt = j9_flt                                                             # Mass of UPR1 (g)
+            b2_flt = j2_flt*b1_flt                                                      # Mass of UP (vs RD1) in UPR1 (g)
+            b3_flt = (1-j2_flt)*b1_flt                                                  # Mass of RD1 (vs UP) in UPR1 (g)
+            b4_flt = (j4_flt*m1_flt)+(j5_flt*m2_flt)+(j6_flt*m3_flt)+(j7_flt*m4_flt)    # Average molar mass of RD1 mixture (g mol^-1)
+            b5_flt = b3_flt/b4_flt                                                      # Total moles in the mixture RD1 (moles)
+            b6_flt = m1_flt*(j4_flt*b5_flt)                                             # Mass of DMI1 (vs DEI1,DPI1,MM1) in RD1 (g)
+            b7_flt = m2_flt*(j5_flt*b5_flt)                                             # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
+            b8_flt = m3_flt*(j6_flt*b5_flt)                                             # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
+            b9_flt = m4_flt*(j7_flt*b5_flt)                                             # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
+            b10_flt = (b2_flt/q1_flt)*(1-q1_flt)                                        # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
+            b11_flt = b10_flt-b3_flt                                                    # Mass of RD2 (vs UPR1) in UPR2 (g)
+            b12_flt = (a1_flt*m1_flt)+(a2_flt*m2_flt)+(a3_flt*m3_flt)+(a4_flt*m4_flt)   # Average molar mass of RD2 mixture (g mol^-1)
+            b13_flt = b11_flt/b12_flt                                                   # Total moles in mixture RD2 (moles)
+            b14_flt = m1_flt*(a1_flt*b13_flt)                                           # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
+            b15_flt = m2_flt*(a2_flt*b13_flt)                                           # Mass of DEI2 (vs DMI2,DPI2,MM2) in RD2 (g)
+            b16_flt = m3_flt*(a3_flt*b13_flt)                                           # Mass of DPI2 (vs DMI2,DEI2,MM2) in RD2 (g)
+            b17_flt = m4_flt*(a4_flt*b13_flt)                                           # Mass of MM2 (vs DMI2,DEI2,DPI2) in RD2 (g)
+            b18_flt = b6_flt+b14_flt                                                    # Mass of DMI (vs DEI,DPI,MM) in RD (g)
+            b19_flt = b7_flt+b15_flt                                                    # Mass of DEI (vs DMI,DPI,MM) in RD (g)
+            b20_flt = b8_flt+b16_flt                                                    # Mass of DPI (vs DMI,DEI,MM) in RD (g)
+            b21_flt = b9_flt+b17_flt                                                    # Mass of MM (vs DMI,DEI,DPI) in RD (g)
+            b22_flt = b10_flt+b2_flt                                                    # Mass of UPR2 (vs I) in IUPR (g)
+            b23_flt = (b22_flt/j1_flt)*(1-j1_flt)                                       # Mass of I (vs UPR2) in IUPR (g)
+            b24_flt = (1-j3_flt)*b23_flt                                                # Mass of DBP (vs CS) in I (g)
+            b25_flt = j3_flt*b23_flt                                                    # Mass of CS (vs DBP) in I (g)
+            b26_flt = b22_flt+b23_flt                                                   # Mass of IUPR (g)
+            b27_flt = (j8_flt/b26_flt)*j9_flt                                           # Suggested mass of UPR1 to achieve target mass of IUPR (g) (uses b1)
 
-            RequiredUPR1_g_arr = np.append(RequiredUPR1_g_arr,b31_flt)
-            RequiredDMI2_g_arr = np.append(RequiredDMI2_g_arr,b11_flt)
+            RequiredUPR1_g_arr = np.append(RequiredUPR1_g_arr,b27_flt)
+            RequiredDMI2_g_arr = np.append(RequiredDMI2_g_arr,b14_flt)
         
         RequiredDMI2_g_float = np.sum(RequiredDMI2_g_arr)
 
@@ -1684,11 +2042,11 @@ class Method20250817Dim4_class():
         b1_g_arr = np.empty(0)
         for TrialIdx_int,TargetMassOfUPR1_g_float in zip(RunningTrialsIdx_arr,RequiredUPR1_g_arr):
             print(f"\n-----Trial {TrialIdx_int}-----")
-            print(f"Use a pasteur pipette to transfer around {round(TargetMassOfUPR1_g_float,2)} g UPR1 to {len(RunningTrialsIdx_arr)} to the silicone mould gap.")
+            print(f"Use a pasteur pipette to transfer around {round(TargetMassOfUPR1_g_float,2)} g UPR1 to the silicone mould gap.")
             b1_g_arr = np.append(arr=b1_g_arr,values=MiscMethods_obj.NumericUserInputRetriever_func("Mass of StockUPR1 transferred? (g)"))
 
         print(f"\n===== Mixing UPR2 from UPR1 & RD2 =====")
-        BackupVariableNames_lis = ["TrialIdx","q1","q2","q3","q4","a1","a2","a3","a4","j1","j2","j3","j4","j5","j6","j7","j8","j9","j10","j11","m1","m2","m3","m4","m5","b1","b2","b3","b4","b5","b6","b7","b8","b9","b10","b11","b12","b13","b14","b15","b16","b17","b18","b19","b20","b21","b22","b23","b24","b25","b26","b27","b28","b29","b30","b31"]
+        BackupVariableNames_lis = ["TrialIdx","q1","q2","q3","q4","a1","a2","a3","a4","j1","j2","j3","j4","j5","j6","j7","j8","j9","m1","m2","m3","m4","b1","b2","b3","b4","b5","b6","b7","b8","b9","b10","b11","b12","b13","b14","b15","b16","b17","b18","b19","b20","b21","b22","b23","b24","b25","b26","b27"]
         
         BackupVariablesMatrix_lis = []
         for i in BackupVariableNames_lis:
@@ -1701,80 +2059,74 @@ class Method20250817Dim4_class():
             q4_flt = RunningTrialsQ4_flt        # Abstract z-axis simplex coordinates (Tetrahedron Parameter Space)
             q_vals_lis = [q1_flt,q2_flt,q3_flt,q4_flt]
 
-            a1_flt = RunningTrialsA1_flt        # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
-            a2_flt = RunningTrialsA2_flt        # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
-            a3_flt = RunningTrialsA3_flt        # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
-            a4_flt = RunningTrialsA4_flt        # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
+            a1_flt = RunningTrialsA1_flt        # Mole fraction value for DMI (vs DEI,DPI,MM) in RD (#)
+            a2_flt = RunningTrialsA2_flt        # Mole fraction value for DEI (vs DMI,DPI,MM) in RD (#)
+            a3_flt = RunningTrialsA3_flt        # Mole fraction value for DPI (vs DMI,DEI,MM) in RD (#)
+            a4_flt = RunningTrialsA4_flt        # Mole fraction value for MM (vs DMI,DEI,DPI) in RD (#)
             a_vals_lis = [a1_flt,a2_flt,a3_flt,a4_flt]
 
-            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI2_DecPct_flt                  # Percentage UPR2 (vs I2) in IUPR1 (dec. %)
-            j2_flt = OptimisationSetup_obj.j2_I2_I1vsCS_flt                             # Percentage I1 (vs CS) in I2 (dec. %)
-            j3_flt = OptimisationSetup_obj.j3_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
-            j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I1 (dec. %)
-            j5_flt = OptimisationSetup_obj.j5_RD1_DMI1vsDEI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DMI1 (vs DEI1,DPI1,MM1) in RD1 (#)
-            j6_flt = OptimisationSetup_obj.j6_RD1_DEI1vsDMI1vsDPI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DEI1 (vs DMI1,DPI1,MM1) in RD1 (#)
-            j7_flt = OptimisationSetup_obj.j7_RD1_DPI1vsDMI1vsDEI1vsMM1_Stoich_flt      # Stoichiometric ratio value for DPI1 (vs DMI1,DEI1,MM1) in RD1 (#)
-            j8_flt = OptimisationSetup_obj.j8_RD1_MM1vsDMI1vsDEI1vsDPI1_Stoich_flt      # Stoichiometric ratio value for MM1 (vs DMI1,DEI1,DPI1) in RD1 (#)
-            j9_flt = OptimisationSetup_obj.j9_RD1_Stoich_flt                            # Stoichiometric ratio value for RD1 (product of DMI1,DEI1,DPI1,MM1) (#)
-            j10_flt = OptimisationSetup_obj.j10_IUPR_TargetMass_flt                     # Target mass of IUPR (g)
-            j11_flt = OptimisationSetup_obj.j11_UPR1_InitGuessMass_flt                  # Guesstimated mass of UPR1 (g)
-            j_vals_lis = [j1_flt,j2_flt,j3_flt,j4_flt,j5_flt,j6_flt,j7_flt,j8_flt,j9_flt,j10_flt,j11_flt]
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR1vsI1_DecPct_flt                  # Percentage UPR2 (vs I) in IUPR1 (dec. %)
+            j2_flt = OptimisationSetup_obj.j2_UPR1_UPvsRD1_DecPct_flt                   # Percentage UP1 (vs RD1) in UPR1 (dec. %)
+            j3_flt = OptimisationSetup_obj.j3_I1_CSvsDBP_DecPct_flt                     # Percentage CS (vs DBP) in I (dec. %)
+            j4_flt = OptimisationSetup_obj.j4_RD1_DMI1vsDEI1vsDPI1vsMM1_Stoich_flt      # Mole fraction value for DMI1 (vs DEI1,DPI1,MM1) in RD1 (#)
+            j5_flt = OptimisationSetup_obj.j5_RD1_DEI1vsDMI1vsDPI1vsMM1_Stoich_flt      # Mole fraction value for DEI1 (vs DMI1,DPI1,MM1) in RD1 (#)
+            j6_flt = OptimisationSetup_obj.j6_RD1_DPI1vsDMI1vsDEI1vsMM1_Stoich_flt      # Mole fraction value for DPI1 (vs DMI1,DEI1,MM1) in RD1 (#)
+            j7_flt = OptimisationSetup_obj.j7_RD1_MM1vsDMI1vsDEI1vsDPI1_Stoich_flt      # Mole fraction value for MM1 (vs DMI1,DEI1,DPI1) in RD1 (#)
+            j8_flt = OptimisationSetup_obj.j8_IUPR_TargetMass_flt                       # Target mass of IUPR (g)
+            j9_flt = OptimisationSetup_obj.j9_UPR1_InitGuessMass_flt                    # Guesstimated mass of UPR1 (g)
+            j_vals_lis = [j1_flt,j2_flt,j3_flt,j4_flt,j5_flt,j6_flt,j7_flt,j8_flt,j9_flt]
 
             m1_flt = ChemicalData_dict['chemicals']['DmI']['mr_flt']    # Molecular mass of DMI (g mol^-1)
             m2_flt = ChemicalData_dict['chemicals']['DeI']['mr_flt']    # Molecular mass of DEI (g mol^-1)
             m3_flt = ChemicalData_dict['chemicals']['DpI']['mr_flt']    # Molecular mass of DPI (g mol^-1)
             m4_flt = ChemicalData_dict['chemicals']['MM']['mr_flt']     # Molecular mass of MM (g mol^-1)
-            m5_flt = m1_flt+m2_flt+m3_flt+m4_flt                        # Molecular mass of RD mixture (g mol^-1)
-            m_vals_lis = [m1_flt,m2_flt,m3_flt,m4_flt,m5_flt]
+            m_vals_lis = [m1_flt,m2_flt,m3_flt,m4_flt]
 
-            b1_flt = b1_g_flt                                   # Mass of UPR1 (g)
-            b2_flt = j3_flt*b1_flt                              # Mass of UP (vs RD1) in UPR1 (g)
-            b3_flt = (1-j3_flt)*b1_flt                          # Mass of RD1 (vs UP) in UPR1 (g)
-            b4_flt = (((b3_flt/m5_flt)/j9_flt)*j5_flt)*m1_flt   # Mass of DMI1 (vs DEI1,DPI1,MM1) in RD1 (g)
-            b5_flt = (((b3_flt/m5_flt)/j9_flt)*j6_flt)*m2_flt   # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
-            b6_flt = (((b3_flt/m5_flt)/j9_flt)*j7_flt)*m3_flt   # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
-            b7_flt = (((b3_flt/m5_flt)/j9_flt)*j8_flt)*m4_flt   # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
-            b8_flt = (b2_flt/q1_flt)*(1-q1_flt)                 # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
-            b9_flt = b8_flt-b3_flt                              # Mass of RD2 (vs UPR1) in UPR2 (g)
-            b10_flt = a1_flt+a2_flt+a3_flt+a4_flt               # Stoichiometric value of RD (product of DMI,DEI,DPI,MM) (#)
-            b11_flt = (((b9_flt/m5_flt)/b10_flt)*a1_flt)*m1_flt # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
-            b12_flt = (((b9_flt/m5_flt)/b10_flt)*a2_flt)*m2_flt # Mass of DEI2 (vs DMI2,DPI2,MM2) in RD2 (g)
-            b13_flt = (((b9_flt/m5_flt)/b10_flt)*a3_flt)*m3_flt # Mass of DPI2 (vs DMI2,DEI2,MM2) in RD2 (g)
-            b14_flt = (((b9_flt/m5_flt)/b10_flt)*a4_flt)*m4_flt # Mass of MM2 (vs DMI2,DEI2,DPI2) in RD2 (g)
-            b15_flt = b4_flt+b11_flt                            # Mass of DMI (vs DEI,DPI,MM) in RD (g)
-            b16_flt = b5_flt+b12_flt                            # Mass of DEI (vs DMI,DPI,MM) in RD (g)
-            b17_flt = b6_flt+b13_flt                            # Mass of DPI (vs DMI,DEI,MM) in RD (g)
-            b18_flt = b7_flt+b14_flt                            # Mass of MM (vs DMI,DEI,DPI) in RD (g)
-            b19_flt = (b15_flt/m1_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DMI (vs DEI,DPI,MM) in RD (#)
-            b20_flt = (b16_flt/m2_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DEI (vs DMI,DPI,MM) in RD (#)
-            b21_flt = (b17_flt/m3_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for DPI (vs DMI,DEI,MM) in RD (#)
-            b22_flt = (b18_flt/m4_flt)/((b8_flt/m5_flt)/j9_flt) # Stoichiometric ratio value for MM (vs DMI,DEI,DPI) in RD (#)
-            b23_flt = b8_flt+b2_flt                             # Mass of UPR2 (vs I2) in IUPR (g)
-            b24_flt = (b23_flt/j1_flt)*(1-j1_flt)               # Mass of I2 (vs UPR2) in IUPR (g)
-            b25_flt = j2_flt*b24_flt                            # Mass of I1 (vs CS2) in I2 (g)
-            b26_flt = (1-j2_flt)*b24_flt                        # Mass of CS2 (vs I1) in I2 (g)
-            b27_flt = (1-j4_flt)*b25_flt                        # Mass of DBP (vs CS1) in I1 (g)
-            b28_flt = j4_flt*b25_flt                            # Mass of CS1 (vs DBP) in I1 (g)
-            b29_flt = b26_flt+b28_flt                           # Mass of CS (vs DBP) in I2 (g)
-            b30_flt = b23_flt+b24_flt                           # Mass of IUPR (g)
-            b31_flt = (j10_flt/b30_flt)*j11_flt                 # Suggested mass of UPR1 to achieve target mass of IUPR (g) (uses b1)
-            b_vals_lis = [b1_flt,b2_flt,b3_flt,b4_flt,b5_flt,b6_flt,b7_flt,b8_flt,b9_flt,b10_flt,b11_flt,b12_flt,b13_flt,b14_flt,b15_flt,b16_flt,b17_flt,b18_flt,b19_flt,b20_flt,b21_flt,b22_flt,b23_flt,b24_flt,b25_flt,b26_flt,b27_flt,b28_flt,b29_flt,b30_flt,b31_flt]
+            b1_flt = b1_g_flt                                                           # Mass of UPR1 (g)
+            b2_flt = j2_flt*b1_flt                                                      # Mass of UP (vs RD1) in UPR1 (g)
+            b3_flt = (1-j2_flt)*b1_flt                                                  # Mass of RD1 (vs UP) in UPR1 (g)
+            b4_flt = (j4_flt*m1_flt)+(j5_flt*m2_flt)+(j6_flt*m3_flt)+(j7_flt*m4_flt)    # Average molar mass of RD1 mixture (g mol^-1)
+            b5_flt = b3_flt/b4_flt                                                      # Total moles in the mixture RD1 (moles)
+            b6_flt = m1_flt*(j4_flt*b5_flt)                                             # Mass of DMI1 (vs DEI1,DPI1,MM1) in RD1 (g)
+            b7_flt = m2_flt*(j5_flt*b5_flt)                                             # Mass of DEI1 (vs DMI1,DPI1,MM1) in RD1 (g)
+            b8_flt = m3_flt*(j6_flt*b5_flt)                                             # Mass of DPI1 (vs DMI1,DEI1,MM1) in RD1 (g)
+            b9_flt = m4_flt*(j7_flt*b5_flt)                                             # Mass of MM1 (vs DMI1,DEI1,DPI1) in RD1 (g)
+            b10_flt = (b2_flt/q1_flt)*(1-q1_flt)                                        # Mass of RD (vs UP) (RD=RD1+RD2) in UPR2 (g)
+            b11_flt = b10_flt-b3_flt                                                     # Mass of RD2 (vs UPR1) in UPR2 (g)
+            b12_flt = (a1_flt*m1_flt)+(a2_flt*m2_flt)+(a3_flt*m3_flt)+(a4_flt*m4_flt)   # Average molar mass of RD2 mixture (g mol^-1)
+            b13_flt = b11_flt/b12_flt                                                   # Total moles in mixture RD2 (moles)
+            b14_flt = m1_flt*(a1_flt*b13_flt)                                           # Mass of DMI2 (vs DEI2,DPI2,MM2) in RD2 (g)
+            b15_flt = m2_flt*(a2_flt*b13_flt)                                           # Mass of DEI2 (vs DMI2,DPI2,MM2) in RD2 (g)
+            b16_flt = m3_flt*(a3_flt*b13_flt)                                           # Mass of DPI2 (vs DMI2,DEI2,MM2) in RD2 (g)
+            b17_flt = m4_flt*(a4_flt*b13_flt)                                           # Mass of MM2 (vs DMI2,DEI2,DPI2) in RD2 (g)
+            b18_flt = b6_flt+b14_flt                                                    # Mass of DMI (vs DEI,DPI,MM) in RD (g)
+            b19_flt = b7_flt+b15_flt                                                    # Mass of DEI (vs DMI,DPI,MM) in RD (g)
+            b20_flt = b8_flt+b16_flt                                                    # Mass of DPI (vs DMI,DEI,MM) in RD (g)
+            b21_flt = b9_flt+b17_flt                                                    # Mass of MM (vs DMI,DEI,DPI) in RD (g)
+            b22_flt = b10_flt+b2_flt                                                    # Mass of UPR2 (vs I) in IUPR (g)
+            b23_flt = (b22_flt/j1_flt)*(1-j1_flt)                                       # Mass of I (vs UPR2) in IUPR (g)
+            b24_flt = (1-j3_flt)*b23_flt                                                # Mass of DBP (vs CS) in I (g)
+            b25_flt = j3_flt*b23_flt                                                    # Mass of CS (vs DBP) in I (g)
+            b26_flt = b22_flt+b23_flt                                                   # Mass of IUPR (g)
+            b27_flt = (j8_flt/b26_flt)*j9_flt                                           # Suggested mass of UPR1 to achieve target mass of IUPR (g) (uses b1)
+            b_vals_lis = [b1_flt,b2_flt,b3_flt,b4_flt,b5_flt,b6_flt,b7_flt,b8_flt,b9_flt,b10_flt,b11_flt,b12_flt,b13_flt,b14_flt,b15_flt,b16_flt,b17_flt,b18_flt,b19_flt,b20_flt,b21_flt,b22_flt,b23_flt,b24_flt,b25_flt,b26_flt,b27_flt]
 
             var_vals_lis = [TrialIdx_int]+q_vals_lis+a_vals_lis+j_vals_lis+m_vals_lis+b_vals_lis
             for count,(val,BackupVariable_arr) in enumerate(zip(var_vals_lis,BackupVariablesMatrix_lis)):
                 BackupVariablesMatrix_lis[count] = np.append(BackupVariable_arr,val)
+            
             MiscMethods_obj = MiscMethods_class()
             PipettingMethods_obj = PipettingMethods_class()
             PipetteData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + PipettingMethods_obj.DependencyFileLocation_str)
             ChemicalData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + MiscMethods_obj.ChemicalDependencyFileLocation_str)
-            pipette_lis = ["P10mL","P200","P20"]
+            pipette_lis = ["P200","P20"]
             PipetteData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + PipettingMethods_obj.DependencyFileLocation_str)
 
             print(f"\n-----Trial {TrialIdx_int}-----")
             print(f"Add {round(b14_flt,3)} g DMI")
             SubstanceName_str = "DmI"
             SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
-            SubstanceTemperature_flt = 20.0
+            SubstanceTemperature_flt = 40.0
             print(f"Use either:")
             for pipette_str in pipette_lis:
                 print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
@@ -1782,52 +2134,47 @@ class Method20250817Dim4_class():
                 CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
                 Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b14_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
                 print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
-            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
 
-            # print(f"Add {round(b15_flt,3)} g DEI")
-            # SubstanceName_str = "DeI"
-            # SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
-            # SubstanceTemperature_flt = 20.0
-            # print(f"Use either:")
-            # for pipette_str in pipette_lis:
-            #     print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
-            #     CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
-            #     CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
-            #     Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b15_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
-            #     print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
-            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+            print(f"Add {round(b15_flt,3)} g DEI")
+            SubstanceName_str = "DeI"
+            SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            SubstanceTemperature_flt = 3.0
+            print(f"Use either:")
+            for pipette_str in pipette_lis:
+                print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+                CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+                CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+                Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b15_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+                print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
 
-            # print(f"Add {round(b16_flt,3)} g DPI")
-            # SubstanceName_str = "DpI"
-            # SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
-            # SubstanceTemperature_flt = 20.0
-            # print(f"Use either:")
-            # for pipette_str in pipette_lis:
-            #     print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
-            #     CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
-            #     CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
-            #     Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b16_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
-            #     print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
-            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+            print(f"Add {round(b16_flt,3)} g DPI")
+            SubstanceName_str = "DpI"
+            SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            SubstanceTemperature_flt = 3.0
+            print(f"Use either:")
+            for pipette_str in pipette_lis:
+                print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+                CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+                CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+                Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b16_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+                print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
 
-            # print(f"Add {round(b17_flt,3)} g MM")
-            # SubstanceName_str = "DpI"
-            # SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
-            # SubstanceTemperature_flt = 20.0
-            # print(f"Use either:")
-            # for pipette_str in pipette_lis:
-            #     print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
-            #     CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
-            #     CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
-            #     Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b17_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
-            #     print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
-            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+            print(f"Add {round(b17_flt,3)} g MM")
+            SubstanceName_str = "MM"
+            SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            SubstanceTemperature_flt = 3.0
+            print(f"Use either:")
+            for pipette_str in pipette_lis:
+                print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+                CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+                CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+                Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b17_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+                print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
 
-            print(f"\n===== Mixing I2 from CS2 & I1 before adding I2 to UPR2 to form IUPR =====")
+            print(f"\n===== Weighing out I to be mixed with UPR2 to form IUPR =====")
             print(f"\n-----Trial {TrialIdx_int}-----")
             print(f"In a pair of weighing boats:")
-            print(f"Add {round(b21_flt,3)} g I1")
-            print(f"Add {round(b22_flt,3)} g CS2")
+            print(f"Add {round(b23_flt,3)} g I")
             MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
 
         # Backing up the variables calculated during the trials.

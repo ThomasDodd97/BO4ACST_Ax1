@@ -656,7 +656,7 @@ class ThreeDim_class():
                 c_high_x1_sca = high_x1_sca
                 c_high_x2_sca = high_x2_sca
                 c_high_x3_sca = high_x3_sca
-            c
+            base_sca,NoS_sca = NearestSobolBaseFinder_func(NoSD_flt)
             if NoS_sca < NoSD_flt:
                 base_sca,NoS_sca = NearestSobolBaseFinder_func(NoSD_flt * 2)
             sampler_obj = qmc.Sobol(d=len(Parameters_lis))
@@ -690,6 +690,158 @@ class ThreeDim_class():
         ax.set_xlabel("x1")
         ax.set_ylabel("x2")
         ax.set_zlabel("x3")
+
+class McIntersiteProjTh_class():
+    def __init__(self):
+        self.name = "Inner Class - Crombecq Exploratory Sampler with threshold based system"
+    def McIntersiteProjTh_Tetra_func(self,OptimisationSetup_obj,AxClient_obj):
+        # Pulling the Trials So Far
+        TrialsThusFar_df = AxClient_obj.summarize()
+
+        # Names of Dimensions
+        DimensionNames_lis = []
+        for i in OptimisationSetup_obj.Parameters_lis:
+            DimensionNames_lis.append(i.name)
+
+        # Matrix of Trials So Far
+        q_lis = []
+        for i in DimensionNames_lis:
+            q_lis.append(np.array(TrialsThusFar_df[i]))
+        q_mat = np.array(q_lis)
+
+        xyz_mat = CoordinateConverterFromQsToXyz(q_mat[1:4])
+
+        mixed_mat = np.concatenate((np.expand_dims(q_mat[0],axis=0),xyz_mat),axis=0)
+
+        # Dimension Bounds
+        b_lis = []
+        for i in OptimisationSetup_obj.Parameters_lis:
+            b_lis.append(i.bounds)
+
+        # Number of Dimensions
+        d_flt = len(b_lis)
+
+        # Number of Points Sampled
+        n_flt = len(TrialsThusFar_df)
+
+        # Number of Points Candidated
+        # 1000 = 3m filtering (1000 obtained)
+        c_flt = 1000*n_flt
+
+        # Alpha Hyperparameter
+        alpha_flt = 0.5
+
+        # Pre-Candidate Matrix
+        pre_y_lis = []
+        for i in range(3):
+            pre_y_lis.append(np.random.uniform(0.00000000001,1,c_flt))
+        pre_y_mat = np.array(pre_y_lis)
+
+        filtered_y_lis = []
+        for row in pre_y_mat.T:
+            point = Point3D(row[0],row[1],row[2])
+            if PointWithinTetrahedronChecker_func(point,A_plane,B_plane,C_plane,D_plane) == 1:
+                filtered_y_lis.append(row)
+        filtered_y_mat = np.array(filtered_y_lis).T
+
+        ci_flt = len(filtered_y_mat[0])
+        print(ci_flt)
+    
+        q1_lis = np.random.uniform(b_lis[0][0],b_lis[0][1],ci_flt)
+
+        y_mat = np.concatenate((np.expand_dims(q1_lis,axis=0),filtered_y_mat),axis=0)
+
+        # d_min Parameter
+        d_min_flt = (2*alpha_flt)/n_flt
+
+        # mc-intersite_proj_th
+        y_results = []
+        for y_row in y_mat.T:
+            gobbles_lis = []
+            degooks_lis = []
+            for x_row in mixed_mat.T:
+                gobbles_lis.append(np.linalg.norm(x_row-y_row,ord=np.inf))
+                degooks_lis.append(np.linalg.norm(x_row-y_row,ord=2))
+            gobble_flt = np.min(gobbles_lis)
+            degook_flt = degooks_lis[np.argmin(gobbles_lis)]
+            if gobble_flt < d_min_flt:
+                y_results.append(0)
+            else:
+                y_results.append(degook_flt)
+
+        # Suggested Point
+        y_coord_lis = []
+        for dimension in y_mat:
+            y_coord_lis.append([dimension[np.argmax(y_results)]])
+        y_coord_mat = np.array(y_coord_lis)
+
+        qs_mat = CoordinateConverterFromXyzToQs(y_coord_mat[1:4])
+
+        return np.concatenate((np.expand_dims(y_coord_mat[0],axis=0),qs_mat),axis=0)
+
+
+    def McIntersiteProjTh_func(self,OptimisationSetup_obj,AxClient_obj):
+        # Pulling the Trials So Far
+        TrialsThusFar_df = AxClient_obj.summarize()
+
+        # Names of Dimensions
+        DimensionNames_lis = []
+        for i in OptimisationSetup_obj.Parameters_lis:
+            DimensionNames_lis.append(i.name)
+
+        # Matrix of Trials So Far
+        x_lis = []
+        for i in DimensionNames_lis:
+            x_lis.append(np.array(TrialsThusFar_df[i]))
+        x_mat = np.array(x_lis)
+
+        # Dimension Bounds
+        b_lis = []
+        for i in OptimisationSetup_obj.Parameters_lis:
+            b_lis.append(i.bounds)
+
+        # Number of Dimensions
+        d_flt = len(b_lis)
+
+        # Number of Points Sampled
+        n_flt = len(TrialsThusFar_df)
+
+        # Number of Points Candidated
+        c_flt = 100*n_flt
+
+        # Alpha Hyperparameter
+        alpha_flt = 0.5
+
+        # Candidate Matrix
+        y_lis = []
+        for i in b_lis:
+            y_lis.append(np.random.uniform(i[0],i[1],c_flt))
+        y_mat = np.array(y_lis)
+
+        # d_min Parameter
+        d_min_flt = (2*alpha_flt)/n_flt
+
+        # mc-intersite_proj_th
+        y_results = []
+        for y_row in y_mat.T:
+            gobbles_lis = []
+            degooks_lis = []
+            for x_row in x_mat.T:
+                gobbles_lis.append(np.linalg.norm(x_row-y_row,ord=np.inf))
+                degooks_lis.append(np.linalg.norm(x_row-y_row,ord=2))
+            gobble_flt = np.min(gobbles_lis)
+            degook_flt = degooks_lis[np.argmin(gobbles_lis)]
+            if gobble_flt < d_min_flt:
+                y_results.append(0)
+            else:
+                y_results.append(degook_flt)
+        
+        # Suggested Point
+        y_coord_lis = []
+        for dimension in y_mat:
+            y_coord_lis.append([dimension[np.argmax(y_results)]])
+        y_coord_mat = np.array(y_coord_lis)
+        return y_coord_mat.T
 
 class McIntersiteProj_class():
     def __init__(self):
@@ -912,3 +1064,4 @@ class Sampler_class(object):
         self.three = ThreeDim_class()
         self.custom = custom_class()
         self.McIntersiteProj = McIntersiteProj_class()
+        self.McIntersiteProjTh = McIntersiteProjTh_class()
