@@ -1012,14 +1012,14 @@ def PLYMTargetRetrieverMethod20250911_func(client_obj,OptimisationSetup_obj):
                 corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
                 cst_df = pd.read_csv(CsvRawDataTrialMT_str)
                 corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
-                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 t1_flt = LimitOfProportionality_flt
-                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
                 t2_flt = AbsoluteYoungsModulus_flt
                 t_lis.append([t1_flt,t2_flt])
@@ -1060,15 +1060,15 @@ def YBPYMTargetRetrieverMethod20251019_func(client_obj,OptimisationSetup_obj):
                 corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
                 cst_df = pd.read_csv(CsvRawDataTrialMT_str)
                 corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
-                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True)
                 t1_flt = YieldBreakPoint_flt
-                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
                 t2_flt = AbsoluteYoungsModulus_flt
                 t_lis.append([t1_flt,t2_flt])
@@ -1097,7 +1097,7 @@ def PLYBPTargetRetrieverMethod20251019_func(client_obj,OptimisationSetup_obj):
             print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
             dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
             dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
-            t_lis = []
+            t_lis = []            
             for RunningTrialIdx_int in RunningTrialsIdx_arr:
                 ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
                 StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
@@ -1108,14 +1108,14 @@ def PLYBPTargetRetrieverMethod20251019_func(client_obj,OptimisationSetup_obj):
                 corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
                 cst_df = pd.read_csv(CsvRawDataTrialMT_str)
                 corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
-                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
                 t1_flt = LimitOfProportionality_flt
-                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=False)
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True)
                 t2_flt = YieldBreakPoint_flt
                 t_lis.append([t1_flt,t2_flt])
             t_arr = np.array(t_lis)
@@ -1154,16 +1154,16 @@ def PLYBPYMTargetRetrieverMethod20251013_func(client_obj,OptimisationSetup_obj):
                 corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
                 cst_df = pd.read_csv(CsvRawDataTrialMT_str)
                 corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
-                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
                 StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
-                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
-                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
-                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
-                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
                 t1_flt = LimitOfProportionality_flt
-                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=False) # True
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True) # True
                 t2_flt = YieldBreakPoint_flt
-                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                YoungsModulus_flt = CSTMethods_obj.YoungsModulus_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
                 AbsoluteYoungsModulus_flt = abs(YoungsModulus_flt)
                 t3_flt = AbsoluteYoungsModulus_flt
                 t_lis.append([t1_flt,t2_flt,t3_flt])
@@ -2134,6 +2134,7 @@ class Method20250817Dim4_class():
                 CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
                 Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b14_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
                 print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            print()
 
             print(f"Add {round(b15_flt,3)} g DEI")
             SubstanceName_str = "DeI"
@@ -2146,6 +2147,7 @@ class Method20250817Dim4_class():
                 CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
                 Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b15_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
                 print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            print()
 
             print(f"Add {round(b16_flt,3)} g DPI")
             SubstanceName_str = "DpI"
@@ -2158,6 +2160,7 @@ class Method20250817Dim4_class():
                 CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
                 Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(b16_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
                 print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            print()
 
             print(f"Add {round(b17_flt,3)} g MM")
             SubstanceName_str = "MM"
@@ -2181,6 +2184,250 @@ class Method20250817Dim4_class():
         BackupVariablesArrays_mat = np.array(BackupVariablesMatrix_lis)
         BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
 
+def TargetRetrieverMethod20251120_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == (((RunningTrialsIdx_arr[-1]+1)*3)-1):
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t1_lis = []
+            t2_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                t1_lis.append(PreviousTrials_df["x2"][RunningTrialIdx_int])
+                t2_avg_lis = []
+                for MechDataIdx_int in list(range(((RunningTrialIdx_int+1)*3)-3,((RunningTrialIdx_int+1)*3))):
+                    ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                    StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                    ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                    DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == MechDataIdx_int, 'DiameterAvg_mm']).iloc[0])
+                    HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == MechDataIdx_int, 'HeightAvg_mm']).iloc[0])
+                    CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(MechDataIdx_int) + ".csv"
+                    corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                    cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                    corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                    ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                    StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                    SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                    DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                    PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                    LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                    YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True)
+                    t2_avg_lis.append(YieldBreakPoint_flt)
+                t2_avg = np.average(np.array(t2_avg_lis))
+                t2_lis.append(t2_avg)
+            t_lis = []
+            for t1,t2 in zip(t1_lis,t2_lis):
+                t_lis.append([t1,t2])
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def TargetRetrieverMethod20251121_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                print(PreviousTrials_df["x1"])
+                print(np.array(PreviousTrials_df["x1"]))
+                print(np.array(PreviousTrials_df["x1"])[RunningTrialIdx_int])
+                t1_flt = np.array(PreviousTrials_df["x1"])[RunningTrialIdx_int]
+                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True) # True
+                t2_flt = YieldBreakPoint_flt
+                t_lis.append([t1_flt,t2_flt])
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+def ExecutionCheckerMethod20251120_func(client_obj,OptimisationSetup_obj):
+    """
+    This function checks whether the mixing method has been executed so that
+    other parts of the program know when it is time to complete the trials.
+    The first try except clause looks at whether there is a backup csv file
+    and additionally the highest index values of this file and the Ax experiment
+    dataframe to ascertain whether execution has taken place. If it has, it carries
+    out the except clause.
+    In the except clause a second check takes place- the running trials indices are
+    cross-compared with the numbers of the files in the mechanical testing folder
+    if these are equal then data is available for consideration.
+    """
+    checker_bool = False
+    try:
+        PreviousTrials_df = client_obj.summarize()
+        RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+        RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+        if RunningTrials_df.empty:
+            print("There are no trials running! Therefore, none can be completed.")
+        else:
+            print("There are trials running!")
+            my_file = Path(OptimisationSetup_obj.BackupPath_str)
+            if my_file.is_file():
+                print("Backup file available!")
+                Backup_df = pd.read_csv(OptimisationSetup_obj.BackupPath_str)
+                BackupIdx_arr = np.array(Backup_df["TrialIdx"])
+                if RunningTrialsIdx_arr[-1] == BackupIdx_arr[-1]:
+                    raise ValueError('Trials executed but uncompleted.')
+                else:
+                    print("Trials not executed so cannot be completed.")
+            else:
+                print("No backup file available!")
+    except:
+        print("There are trials that can be completed.")
+        try:
+            dir_lis = os.listdir(OptimisationSetup_obj.RawDataMT_str)
+        except:
+            print("Couldn't find a mechanical test data directory nor any mechanical test data, creating one, please place mechanical test data here.")
+            os.mkdir(OptimisationSetup_obj.RawDataMT_str)
+        dir_lis = os.listdir(OptimisationSetup_obj.RawDataMT_str)
+        if dir_lis == []:
+            print("No Files in Mechanical Testing Directory...")
+        else:
+            dir_lis = sorted([int(dir_str.rstrip('.csv')) for dir_str in dir_lis])
+            if dir_lis[-1] == ((BackupIdx_arr.tolist()[-1]+1)*3)-1:
+                print("Mechanical Test Data Available - trials can be completed.")
+                checker_bool = True
+            else:
+                print("Mechanical test data unavailable - please place in folder.")
+    return checker_bool
+ 
+class Method20251120Dim2_class():
+    def __init__(self):
+        self.name = "Tailored Method20251120Dim2: A 20% DMI-based resin. Dual-objective optimisation of both compressive strength and oven time."
+        # self.ExecutionChecker = ExecutionCheckerMethod20251120_func
+        # self.TargetRetriever = TargetRetrieverMethod20251120_func
+        self.ExecutionChecker = ExecutionCheckerMethod20241024_func
+        self.TargetRetriever = TargetRetrieverMethod20251121_func
+    def MixingProcedure_func(self,client_obj:AxClient,OptimisationSetup_obj):
+        MiscMethods_obj = MiscMethods_class()
+        ChemicalData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + MiscMethods_obj.ChemicalDependencyFileLocation_str)
+        PipettingMethods_obj = PipettingMethods_class()
+        PipetteData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + PipettingMethods_obj.DependencyFileLocation_str)
+        pipette_lis = ["P200","P20"]
+
+        print("Retrieving trials...")
+        AllTrials_df = client_obj.summarize()
+        RunningTrials_df = AllTrials_df[AllTrials_df['trial_status'] == "RUNNING"]
+        RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+
+        RunningTrials_x1_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[0].name}'])
+        RunningTrials_x2_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[1].name}'])
+
+        print(f"\n===== Initial Pouring of UPR1 =====")
+        a1_g_arr = np.empty(0)
+        TargetMassOfUPR1_g_float = (OptimisationSetup_obj.j5_IUPR_TargetMass_flt*OptimisationSetup_obj.j1_IUPR_UPR2vsI1_DecPct_flt)*OptimisationSetup_obj.j3_UPR2_UPR1vsRD2_DecPct_flt
+
+        for TrialIdx_int in RunningTrialsIdx_arr:
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            print(f"Use a pasteur pipette to transfer around {round(TargetMassOfUPR1_g_float,2)} g UPR1 to the silicone mould gap.")
+            a1_g_arr = np.append(arr=a1_g_arr,values=MiscMethods_obj.NumericUserInputRetriever_func("Mass of StockUPR1 transferred? (g)"))
+
+        print(f"\n===== Synthesis and Oven Time =====")
+        BackupVariableNames_lis = ["TrialIdx","x1","x2","j1","j2","j3","j4","j5","a1","a2","a3","a4","a5","a6","a7","a8"]
+        BackupVariablesMatrix_lis = []
+        for i in BackupVariableNames_lis:
+            BackupVariablesMatrix_lis.append(np.empty(0))
+
+        for TrialIdx_int,a1_g_flt,RunningTrials_x1_flt,RunningTrials_x2_flt in zip(RunningTrialsIdx_arr,a1_g_arr,RunningTrials_x1_arr,RunningTrials_x2_arr):
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            TemperatureSetting = MiscMethods_obj.ActualTemperatureToOvenSetting(RunningTrials_x2_flt)
+            print(f"Pre-Heat the Oven to {round(TemperatureSetting)}oC.")
+            print()
+
+            x1_flt = RunningTrials_x1_flt       # Oven time
+            x2_flt = RunningTrials_x2_flt       # Oven temperature
+            x_vals_lis = [x1_flt,x2_flt]
+
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR2vsI1_DecPct_flt
+            j2_flt = OptimisationSetup_obj.j2_UPR1_UPvsRD1_DecPct_flt
+            j3_flt = OptimisationSetup_obj.j3_UPR2_UPR1vsRD2_DecPct_flt
+            j4_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt
+            j5_flt = OptimisationSetup_obj.j5_IUPR_TargetMass_flt
+            j_vals_lis = [j1_flt,j2_flt,j3_flt,j4_flt,j5_flt]
+
+            a1_flt = a1_g_flt                       # Mass of UPR1 (g)
+            a2_flt = a1_flt*j2_flt                  # Mass of UP (vs RD1) in UPR1 (g)
+            a3_flt = a1_flt*(1-j2_flt)              # Mass of RD1 (vs UP) in UPR1 (g)
+            a4_flt = (a3_flt/j3_flt)*(1-j3_flt)     # Mass of RD2 (vs UPR1) in UPR2 (g)     [ADD THIS]
+            a5_flt = a4_flt+a1_flt                  # Mass of UPR2 (g)
+            a6_flt = (a5_flt/j1_flt)*(1-j1_flt)     # Mass of I1 (vs UPR2) in IUPR (g)      [ADD THIS]
+            a7_flt = a6_flt*j4_flt                  # Mass of CS (vs DBP) in I1 (g)
+            a8_flt = a6_flt*(1-j4_flt)              # Mass of DBP (vs CS) in I1 (g)
+            a_vals_lis = [a1_flt,a2_flt,a3_flt,a4_flt,a5_flt,a6_flt,a7_flt,a8_flt]
+
+            var_vals_lis = [TrialIdx_int]+x_vals_lis+j_vals_lis+a_vals_lis
+            for count,(val,BackupVariable_arr) in enumerate(zip(var_vals_lis,BackupVariablesMatrix_lis)):
+                BackupVariablesMatrix_lis[count] = np.append(BackupVariable_arr,val)
+
+            print(f"Add {round(a4_flt,3)} g DMI")
+            SubstanceName_str = "DmI"
+            SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            SubstanceTemperature_flt = 40.0
+            print(f"Use either:")
+            for pipette_str in pipette_lis:
+                print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+                CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+                CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+                Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(a4_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+                print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            print()
+            print(f"In a weighing boat:")
+            print(f"Add {round(a6_flt,3)} g I1")
+            print()
+            Hours_int,Minutes_int,Seconds_int = MiscMethods_obj.SecondsToHoursMinutesSeconds(RunningTrials_x1_flt)
+            print(f"Heat sample for {Hours_int} hours, {Minutes_int} minutes, {Seconds_int} seconds.")
+            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+        # Backing up the variables calculated during the trials.
+        BackupVariablesArrays_mat = np.array(BackupVariablesMatrix_lis)
+        BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
+
 class TailoredMethods_class(object):
     def __init__(self):
         self.name = "Outer Class - Tailored Methods Class"
@@ -2195,3 +2442,4 @@ class TailoredMethods_class(object):
         self.Method20250625Dim3 = Method20250625Dim3_class()
         self.Method20250627Dim3 = Method20250627Dim3_class()
         self.Method20250817Dim4 = Method20250817Dim4_class()
+        self.Method20251120Dim2 = Method20251120Dim2_class()

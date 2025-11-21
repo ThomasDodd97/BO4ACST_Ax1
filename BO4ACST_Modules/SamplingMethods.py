@@ -725,8 +725,7 @@ class McIntersiteProjTh_class():
         n_flt = len(TrialsThusFar_df)
 
         # Number of Points Candidated
-        # 1000 = 3m filtering (1000 obtained)
-        c_flt = 1000*n_flt
+        c_flt = 250*n_flt
 
         # Alpha Hyperparameter
         alpha_flt = 0.5
@@ -745,7 +744,10 @@ class McIntersiteProjTh_class():
         filtered_y_mat = np.array(filtered_y_lis).T
 
         ci_flt = len(filtered_y_mat[0])
-        print(ci_flt)
+        # print(ci_flt) # 22s for 97 points at 10*n_flt
+        # print(ci_flt)  # 2m30s for 876 points at 100*n_flt
+        # print(ci_flt)  # 12m15s for 4534 points at 500*n_flt
+        print(ci_flt)  # 12m15s for 4534 points at 250*n_flt
     
         q1_lis = np.random.uniform(b_lis[0][0],b_lis[0][1],ci_flt)
 

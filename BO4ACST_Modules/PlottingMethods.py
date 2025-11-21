@@ -399,7 +399,50 @@ class PlottingMethods_class(object):
             plt.hlines(y=MetricTwoThreshold,xmin=MetricOneThreshold,xmax=np.max(np.array(ObjectiveData_lis[0]))*1.2)
             plt.xlim(np.min(np.array(ObjectiveData_lis[0]))*0.8,np.max(np.array(ObjectiveData_lis[0]))*1.2)
             plt.ylim(np.min(np.array(ObjectiveData_lis[1]))*0.8,np.max(np.array(ObjectiveData_lis[1]))*1.2)
-    def MultiObjectiveOptimisationProgressionPlot(self,AxClient_obj,OptimisationSetup_obj):
-        # This will plot the hypervolume as a whole and its size changes through time as we iterate.
-        # This is of interest as it describes the progress made in pushing the pareto front forwards.
-        # It will hopefully increase as we optimise.
+        elif len(OptimisationSetup_obj.Parameters_lis) == 4:
+            plt.close("all")
+            print("3D Interactive Plot")
+
+            # Sample Data
+            df = AxClient_obj.summarize()
+            DimensionNames_lis = []
+            DimensionData_lis = []
+            for RangeParameter in OptimisationSetup_obj.Parameters_lis:
+                ParameterName_str = RangeParameter.name
+                DimensionNames_lis.append(ParameterName_str)
+                DimensionData_lis.append(df[f"{ParameterName_str}"].tolist())
+            ObjectiveNames_lis = []
+            ObjectiveData_lis = []
+            for Metric in OptimisationSetup_obj.Metrics_lis:
+                ObjectiveNames_lis.append(Metric)
+                ObjectiveData_lis.append(df[f"{Metric}"].tolist())
+            
+            # Pareto Frontier Data
+            Frontier = AxClient_obj.get_pareto_frontier(use_model_predictions=False)
+            MetricOnePosition = []
+            MetricTwoPosition = []
+            PointIndex = []
+            for point in Frontier:
+                MetricOnePosition.append(point[1][ObjectiveNames_lis[0]][0])
+                MetricTwoPosition.append(point[1][ObjectiveNames_lis[1]][0])
+                PointIndex.append(str(point[2]))
+
+            # Threshold Data
+            MetricOneThreshold = float(OptimisationSetup_obj.MetricOneThreshold)
+            MetricTwoThreshold = float(OptimisationSetup_obj.MetricTwoThreshold)
+
+            plt.scatter(ObjectiveData_lis[0][0:OptimisationSetup_obj.NoOfPriorSamples_int],ObjectiveData_lis[1][0:OptimisationSetup_obj.NoOfPriorSamples_int],marker=".",c="black",s=15,label="Prior Samples")
+            plt.scatter(ObjectiveData_lis[0][OptimisationSetup_obj.NoOfPriorSamples_int::],ObjectiveData_lis[1][OptimisationSetup_obj.NoOfPriorSamples_int::],marker="x",c="black",s=15,label="Sequential Samples")
+            for OnePosition,TwoPosition,PointIdx in zip(MetricOnePosition,MetricTwoPosition,PointIndex):
+                plt.scatter(OnePosition,TwoPosition,s=80,facecolors='none',edgecolors='r')
+                plt.text(OnePosition,TwoPosition,PointIdx,fontsize=9)
+            plt.xlabel(OptimisationSetup_obj.MetricOneDescription_str)
+            plt.ylabel(OptimisationSetup_obj.MetricTwoDescription_str)
+            # plt.vlines(x=MetricOneThreshold,ymin=MetricTwoThreshold,ymax=np.max(np.array(ObjectiveData_lis[1]))*1.2)
+            # plt.hlines(y=MetricTwoThreshold,xmin=MetricOneThreshold,xmax=np.max(np.array(ObjectiveData_lis[0]))*1.2)
+            # plt.xlim(np.min(np.array(ObjectiveData_lis[0]))*0.8,np.max(np.array(ObjectiveData_lis[0]))*1.2)
+            # plt.ylim(np.min(np.array(ObjectiveData_lis[1]))*0.8,np.max(np.array(ObjectiveData_lis[1]))*1.2)
+    # def MultiObjectiveOptimisationProgressionPlot(self,AxClient_obj,OptimisationSetup_obj):
+    #     # This will plot the hypervolume as a whole and its size changes through time as we iterate.
+    #     # This is of interest as it describes the progress made in pushing the pareto front forwards.
+    #     # It will hopefully increase as we optimise.

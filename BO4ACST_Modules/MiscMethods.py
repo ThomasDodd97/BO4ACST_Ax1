@@ -1,10 +1,14 @@
 import os
 from pathlib import Path
+import datetime
+import pandas as pd
+import numpy as np
 
 class MiscMethods_class(object):
     def __init__(self):
         self.name = "MiscMethods"
         self.ChemicalDependencyFileLocation_str = "/BO4ACST_Dependencies/MiscellaneousDependencies/data_2024-10-04_ChemicalData.json"
+        self.OvenCalibrationDependencyFileLocation_str = "/BO4ACST_Dependencies/MiscellaneousDependencies/data_2025-11-20_HeraeusCalibration.csv"
         self.RootPackageLocation_str = str(Path(os.path.abspath(__file__)).parent.absolute().parent.absolute())
 
     def jsonOpener_func(self,path_str:str)->dict:
@@ -83,3 +87,29 @@ class MiscMethods_class(object):
             except ValueError:
                 print('Please confirm. (y)')
         print("\t\tInput: ", UserInput_flt)
+
+    def SecondsToHoursMinutesSeconds(self,n):
+        """
+        This function takes a float corresponding to seconds,
+        it then converts this to three values; the hours
+        minutes and seconds. This aids in providing a user
+        helpful information regarding time periods.
+        """
+        Time_str = str(datetime.timedelta(seconds=n))
+        Time_lis = Time_str.split(":")
+        Time_lis = [float(item) for item in Time_lis]
+        Time_lis = [int(item) for item in Time_lis]
+        return Time_lis[0],Time_lis[1],Time_lis[2]
+
+    def ActualTemperatureToOvenSetting(self,ActualTemp_float):
+        """
+        Converts a desired temperature to the setting which needs 
+        to be set on the oven to obtain the desired temperature.
+        """
+        CalibrationCSV_df = pd.read_csv(self.RootPackageLocation_str+self.OvenCalibrationDependencyFileLocation_str)
+        SetTemps_arr = np.array(CalibrationCSV_df["TemperatureSet_oC"])
+        ActTemps_arr = np.array(CalibrationCSV_df["TemperatureActual_oC"])
+        coeffs = np.polyfit(x=ActTemps_arr,y=SetTemps_arr,deg=1)
+        def f(a,b,x):
+            return b*x+a
+        return f(coeffs[1],coeffs[0],ActualTemp_float)

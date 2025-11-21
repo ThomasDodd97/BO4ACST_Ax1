@@ -244,6 +244,9 @@ class ExperimentalMethods_class(object):
                         x_mat = Sampler_obj.McIntersiteProjTh.McIntersiteProjTh_func(OptimisationSetup_obj,client_obj)
                         x_mat = x_mat.T
                         self.TrialAppender_func(x_mat,client_obj,OptimisationSetup_obj)
+                    elif OptimisationSetup_obj.SequentialTechnique == "McIntersiteProjTh_TetrahedralMod":
+                        x_mat = Sampler_obj.McIntersiteProjTh.McIntersiteProjTh_Tetra_func(OptimisationSetup_obj,client_obj)
+                        self.TrialAppender_func(x_mat,client_obj,OptimisationSetup_obj)
 
     def TrialsExecutor_func(self,client_obj,OptimisationSetup_obj):
         """
@@ -301,6 +304,8 @@ class ExperimentalMethods_class(object):
                 TMethods_obj.Method20250627Dim3.MixingProcedure_func(client_obj,OptimisationSetup_obj)
             elif OptimisationSetup_obj.TailoredExperiment_str == "Method20250817Dim4":
                 TMethods_obj.Method20250817Dim4.MixingProcedure_func(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.TailoredExperiment_str == "Method20251120Dim2":
+                TMethods_obj.Method20251120Dim2.MixingProcedure_func(client_obj,OptimisationSetup_obj)
 
     def TrialsCompletor_func(self,client_obj,OptimisationSetup_obj):
         """
@@ -382,6 +387,10 @@ class ExperimentalMethods_class(object):
             elif OptimisationSetup_obj.ObjectivesType_str == "ProportionalityLimitVsYieldBreakPointVsYoungsModulus":
                 if TMethods_obj.Method20250817Dim4.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
                     t_arr = TMethods_obj.Method20250817Dim4.PLYBPYMTargetRetriever(client_obj,OptimisationSetup_obj)
+        elif OptimisationSetup_obj.TailoredExperiment_str == "Method20251120Dim2":
+            if OptimisationSetup_obj.ObjectivesType_str =="OvenTimeVsYieldBreakPoint":
+                if TMethods_obj.Method20251120Dim2.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20251120Dim2.TargetRetriever(client_obj,OptimisationSetup_obj)
 
         # A clause is used to check that the target retrieval was successful before attempting final completion.
         if np.sum(t_arr) == float(69.69696969696969):
