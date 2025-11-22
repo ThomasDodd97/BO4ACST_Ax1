@@ -937,6 +937,8 @@ class CSTMethods_class():
                         print("Plots deemed unacceptable, please change the arbitrary constraints to allow for alternative fitting.")
                 # Returning the strain at the peaks location.
                 return DerivativeStrain_mat[1][int(SustainedRise[0])]
+            if counter == len(DerivativeStrain_mat[0])-3:
+                return 6969696.69
 
     def LimitOfProportionality_func(self,StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool,ChallengePlotAcceptability_bool):
         # Finding the proximity of all points in the original dataset to the strain of the first inflection point.
@@ -1092,6 +1094,12 @@ class CSTMethods_class():
                 DataSetOneDeterminedStress = Stress_flt
                 DataSetOneDeterminedStrain = Strain_flt
                 break
+            # Generates a false final start point for ascent given that this never flatlines enough...
+            elif counter == len(DatasetOne[0])-5:
+                DataSetOneDeterminedIndex = counter
+                DataSetOneDeterminedStress = Stress_flt
+                DataSetOneDeterminedStrain = Strain_flt
+                break
         
         # Now we have the start point we must make the final dataset through which we must iterate to find the yield point's strain value
         DatasetTwo = DatasetOne.T[DataSetOneDeterminedIndex::].T
@@ -1160,3 +1168,24 @@ class CSTMethods_class():
 
         # Returning the metric of interest, yield point.
         return InflectionStressStrain[0]
+
+    def YieldBreakForUnusualSamples_func(self,DerivativeStressStrain_mat,SmoothedStressStrain_mat,ToPlotOrNotToPlot_bool,ChallengePlotAcceptability_bool):
+        FinalStress = SmoothedStressStrain_mat[0][-1]
+        if ToPlotOrNotToPlot_bool == True:
+            plt.figure()
+            plt.plot(SmoothedStressStrain_mat[1],SmoothedStressStrain_mat[0])
+            plt.axhline(y=FinalStress,xmin=0,xmax=1)
+            plt.gca().invert_xaxis()
+            plt.xlabel("Strain") 
+            plt.ylabel("Stress (MPa)")
+            plt.show()
+            plt.close()
+        if ChallengePlotAcceptability_bool == True:
+            MiscMethods_obj = MiscMethods_class()
+            UserInput_str = MiscMethods_obj.StringUserInputRetriever_func("Were the fits acceptable?","y","n")
+            try:
+                if UserInput_str != "y":
+                    raise TypeError("Plots deemed unsuitable.")
+            except:
+                print("Plots deemed unacceptable, please change the arbitrary constraints to allow for alternative fitting.") 
+        return FinalStress

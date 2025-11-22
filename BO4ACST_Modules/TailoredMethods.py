@@ -2271,12 +2271,15 @@ def TargetRetrieverMethod20251121_func(client_obj,OptimisationSetup_obj):
                 SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
                 DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
                 PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
-                LimitOfProportionality_flt = CSTMethods_obj.LimitOfProportionality_func(StressStrain_mat,PeakStrain_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
-                print(PreviousTrials_df["x1"])
-                print(np.array(PreviousTrials_df["x1"]))
-                print(np.array(PreviousTrials_df["x1"])[RunningTrialIdx_int])
+                print(PeakStrain_flt)
+                if PeakStrain_flt == 6969696.69:
+                    print("time to work out the rubber system")
+                    YieldBreakPoint_flt = CSTMethods_obj.YieldBreakForUnusualSamples_func(DerivativeStressStrain_mat,SmoothedStressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                else:
+                    print("normal conditions")
+                    YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True) # True
+                print(f"The yield break point was : {YieldBreakPoint_flt}")
                 t1_flt = np.array(PreviousTrials_df["x1"])[RunningTrialIdx_int]
-                YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True) # True
                 t2_flt = YieldBreakPoint_flt
                 t_lis.append([t1_flt,t2_flt])
             t_arr = np.array(t_lis)
