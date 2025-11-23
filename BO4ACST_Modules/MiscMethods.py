@@ -8,7 +8,8 @@ class MiscMethods_class(object):
     def __init__(self):
         self.name = "MiscMethods"
         self.ChemicalDependencyFileLocation_str = "/BO4ACST_Dependencies/MiscellaneousDependencies/data_2024-10-04_ChemicalData.json"
-        self.OvenCalibrationDependencyFileLocation_str = "/BO4ACST_Dependencies/MiscellaneousDependencies/data_2025-11-20_HeraeusCalibration.csv"
+        self.OvenCalibrationDependencyFileLocation_str = "/BO4ACST_Dependencies/MiscellaneousDependencies/data_2025-11-20_OvenCalibration.csv"
+        self.HeraeusCalibrationDependencyFileLocation_str = "/BO4ACST_Dependencies/MiscellaneousDependencies/data_2025-11-20_HeraeusCalibration.csv"
         self.RootPackageLocation_str = str(Path(os.path.abspath(__file__)).parent.absolute().parent.absolute())
 
     def jsonOpener_func(self,path_str:str)->dict:
@@ -106,10 +107,14 @@ class MiscMethods_class(object):
         Converts a desired temperature to the setting which needs 
         to be set on the oven to obtain the desired temperature.
         """
-        CalibrationCSV_df = pd.read_csv(self.RootPackageLocation_str+self.OvenCalibrationDependencyFileLocation_str)
-        SetTemps_arr = np.array(CalibrationCSV_df["TemperatureSet_oC"])
-        ActTemps_arr = np.array(CalibrationCSV_df["TemperatureActual_oC"])
-        coeffs = np.polyfit(x=ActTemps_arr,y=SetTemps_arr,deg=1)
+        OvenCalibrationCSV_df = pd.read_csv(self.RootPackageLocation_str+self.OvenCalibrationDependencyFileLocation_str)
+        HeraeusCalibrationCSV_df = pd.read_csv(self.RootPackageLocation_str+self.HeraeusCalibrationDependencyFileLocation_str)
+        OvenSetTemps_arr = np.array(OvenCalibrationCSV_df["TemperatureSet_oC"])
+        OvenActTemps_arr = np.array(OvenCalibrationCSV_df["TemperatureActual_oC"])
+        HeraeusSetTemps_arr = np.array(HeraeusCalibrationCSV_df["TemperatureSet_oC"])
+        HeraeusActTemps_arr = np.array(HeraeusCalibrationCSV_df["TemperatureActual_oC"])
+        Ovencoeffs = np.polyfit(x=OvenActTemps_arr,y=OvenSetTemps_arr,deg=1)
+        Heraeuscoeffs = np.polyfit(x=HeraeusActTemps_arr,y=HeraeusSetTemps_arr,deg=1)
         def f(a,b,x):
             return b*x+a
-        return f(coeffs[1],coeffs[0],ActualTemp_float)
+        return f(Ovencoeffs[1],Ovencoeffs[0],ActualTemp_float),f(Heraeuscoeffs[1],Heraeuscoeffs[0],ActualTemp_float)

@@ -1095,11 +1095,11 @@ class CSTMethods_class():
                 DataSetOneDeterminedStrain = Strain_flt
                 break
             # Generates a false final start point for ascent given that this never flatlines enough...
-            elif counter == len(DatasetOne[0])-5:
-                DataSetOneDeterminedIndex = counter
-                DataSetOneDeterminedStress = Stress_flt
-                DataSetOneDeterminedStrain = Strain_flt
-                break
+            # elif counter == len(DatasetOne[0])-5:
+            #     DataSetOneDeterminedIndex = counter
+            #     DataSetOneDeterminedStress = Stress_flt
+            #     DataSetOneDeterminedStrain = Strain_flt
+            #     break
         
         # Now we have the start point we must make the final dataset through which we must iterate to find the yield point's strain value
         DatasetTwo = DatasetOne.T[DataSetOneDeterminedIndex::].T
