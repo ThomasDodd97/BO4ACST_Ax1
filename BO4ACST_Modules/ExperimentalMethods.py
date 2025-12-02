@@ -308,6 +308,8 @@ class ExperimentalMethods_class(object):
                 TMethods_obj.Method20251120Dim2.MixingProcedure_func(client_obj,OptimisationSetup_obj)
             elif OptimisationSetup_obj.TailoredExperiment_str == "Method20251123Dim3":
                 TMethods_obj.Method20251123Dim3.MixingProcedure_func(client_obj,OptimisationSetup_obj)
+            elif OptimisationSetup_obj.TailoredExperiment_str == "Method20251202Dim3":
+                TMethods_obj.Method20251202Dim3.MixingProcedure_func(client_obj,OptimisationSetup_obj)
 
     def TrialsCompletor_func(self,client_obj,OptimisationSetup_obj):
         """
@@ -397,6 +399,10 @@ class ExperimentalMethods_class(object):
             if OptimisationSetup_obj.ObjectivesType_str =="OvenTimeVsYieldBreakPoint":
                 if TMethods_obj.Method20251123Dim3.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
                     t_arr = TMethods_obj.Method20251123Dim3.TargetRetriever(client_obj,OptimisationSetup_obj)
+        elif OptimisationSetup_obj.TailoredExperiment_str == "Method20251202Dim3":
+            if OptimisationSetup_obj.ObjectivesType_str =="YieldBreakPoint":
+                if TMethods_obj.Method20251202Dim3.ExecutionChecker(client_obj,OptimisationSetup_obj) == True:
+                    t_arr = TMethods_obj.Method20251202Dim3.TargetRetriever(client_obj,OptimisationSetup_obj)
 
         # A clause is used to check that the target retrieval was successful before attempting final completion.
         if np.sum(t_arr) == float(69.69696969696969):

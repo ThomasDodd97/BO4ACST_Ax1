@@ -2525,6 +2525,153 @@ class Method20251123Dim3_class():
         BackupVariablesArrays_mat = np.array(BackupVariablesMatrix_lis)
         BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
 
+def TargetRetrieverMethod20251202_func(client_obj,OptimisationSetup_obj):
+    CSTMethods_obj = CSTMethods_class()
+    MiscMethods_obj = MiscMethods_class()
+    PreviousTrials_df = client_obj.summarize()
+    RunningTrials_df = PreviousTrials_df[PreviousTrials_df['trial_status'] == "RUNNING"]
+    RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+    except:
+        print("There is currently no dimensions file for the mechanical test data - creating one - place dimensional data here before attempting target retrieval and processing.")
+        df = pd.DataFrame(columns=['TrialIdx','Diameter1_mm','Diameter2_mm',"Diameter3_mm","Height1_mm","Height2_mm","Height3_mm"])
+        df.to_csv(OptimisationSetup_obj.RawDataMTDims_str,index=False)
+        print("The dimensional dataframe is now available.")
+    try:
+        dim_df = CSTMethods_obj.DataframeGetter_func(OptimisationSetup_obj.RawDataMTDims_str)
+        if dim_df['TrialIdx'].tolist()[-1] == RunningTrialsIdx_arr[-1]:
+            print("The dimensional dataframe is up to date - extracting mechanical test data for evaluation.")
+            dim_df["DiameterAvg_mm"] = (dim_df["Diameter1_mm"] + dim_df["Diameter2_mm"] + dim_df["Diameter3_mm"]) / 3
+            dim_df["HeightAvg_mm"] =  (dim_df["Height1_mm"] + dim_df["Height2_mm"] + dim_df["Height3_mm"]) / 3
+            t_lis = []
+            for RunningTrialIdx_int in RunningTrialsIdx_arr:
+                ArbitrarySustainedRise_int = OptimisationSetup_obj.ArbitrarySustainedRise_int
+                StandardDeviationParameter_flt = OptimisationSetup_obj.StandardDeviationParameter_flt
+                ArbitraryGradientCutoff_flt = OptimisationSetup_obj.ArbitraryGradientCutoff_flt
+                DiameterAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'DiameterAvg_mm']).iloc[0])
+                HeightAvg_mm = float((dim_df.loc[dim_df['TrialIdx'] == RunningTrialIdx_int, 'HeightAvg_mm']).iloc[0])
+                CsvRawDataTrialMT_str = OptimisationSetup_obj.RawDataMT_str + "/" + str(RunningTrialIdx_int) + ".csv"
+                corr_df = pd.read_csv(CSTMethods_obj.RootPackageLocation_str+CSTMethods_obj.CorrectionalFilePath_str)
+                cst_df = pd.read_csv(CsvRawDataTrialMT_str)
+                corr_df = CSTMethods_obj.SmoothedForceDisplacement_func(corr_df,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=False)
+                ForceDisplacement_mat = CSTMethods_obj.AlternativeDataFrameCorrector_func(cst_df,corr_df,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False) # True
+                StressStrain_mat = CSTMethods_obj.StressStrain_func(ForceDisplacement_mat,DiameterAvg_mm,HeightAvg_mm,ToPlotOrNotToPlot_bool=False,ChallengePlotAcceptability_bool=False)
+                SmoothedStressStrain_mat = CSTMethods_obj.SmoothedStressStrain_func(StressStrain_mat,StandardDeviationParameter_flt,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                DerivativeStressStrain_mat = CSTMethods_obj.DerivativeStressStrain_func(SmoothedStressStrain_mat,StressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                PeakStrain_flt = CSTMethods_obj.PeakFinder_func(DerivativeStressStrain_mat,ArbitrarySustainedRise_int,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True) # True
+                print(PeakStrain_flt)
+                UserInput_str = MiscMethods_obj.StringUserInputRetriever_func("Rubber?","y","n")
+                if UserInput_str == "y":
+                    print("time to work out the rubber system")
+                    YieldBreakPoint_flt = CSTMethods_obj.YieldBreakForUnusualSamples_func(DerivativeStressStrain_mat,SmoothedStressStrain_mat,ToPlotOrNotToPlot_bool=True,ChallengePlotAcceptability_bool=True)
+                else:
+                    print("normal conditions")
+                    YieldBreakPoint_flt = CSTMethods_obj.YieldBreakPoint_func(DerivativeStressStrain_mat,PeakStrain_flt,SmoothedStressStrain_mat,StressStrain_mat,ArbitraryGradientCutoff=ArbitraryGradientCutoff_flt,ToPlotOrNotToPlot_bool=True,ArbitrarySustainedRise_int=ArbitrarySustainedRise_int,ChallengePlotAcceptability_bool=True) # True
+                print(f"The yield break point was : {YieldBreakPoint_flt}")
+                t1_flt = np.array(PreviousTrials_df["x1"])[RunningTrialIdx_int]
+                t2_flt = YieldBreakPoint_flt
+                # t_lis.append([t1_flt,t2_flt])
+                t_lis.append(t2_flt)
+            t_arr = np.array(t_lis)
+            return t_arr
+    except:
+        print("Please enter the relevant data into the dimensions csv.")
+        t_arr = [float(69.69696969696969)]
+        return t_arr
+
+class Method20251202Dim3_class():
+    def __init__(self):
+        self.name = "Tailored Method20251123Dim3: Dual-objective optimisation of both compressive strength and oven time."
+        self.ExecutionChecker = ExecutionCheckerMethod20241024_func
+        self.TargetRetriever = TargetRetrieverMethod20251202_func
+    def MixingProcedure_func(self,client_obj:AxClient,OptimisationSetup_obj):
+        MiscMethods_obj = MiscMethods_class()
+        ChemicalData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + MiscMethods_obj.ChemicalDependencyFileLocation_str)
+        PipettingMethods_obj = PipettingMethods_class()
+        PipetteData_dict = MiscMethods_obj.jsonOpener_func(MiscMethods_obj.RootPackageLocation_str + PipettingMethods_obj.DependencyFileLocation_str)
+        pipette_lis = ["P200","P20"]
+
+        print("Retrieving trials...")
+        AllTrials_df = client_obj.summarize()
+        RunningTrials_df = AllTrials_df[AllTrials_df['trial_status'] == "RUNNING"]
+        RunningTrialsIdx_arr = np.array(RunningTrials_df['trial_index'])
+
+        RunningTrials_x1_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[0].name}'])
+        RunningTrials_x2_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[1].name}'])
+        RunningTrials_x3_arr = np.array(RunningTrials_df[f'{OptimisationSetup_obj.Parameters_lis[2].name}'])
+
+        print(f"\n===== Initial Pouring of UPR1 =====")
+        a1_g_arr = np.empty(0)
+
+        for TrialIdx_int,x3 in zip(RunningTrialsIdx_arr,RunningTrials_x3_arr):
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            TargetMassOfUPR1_g_float = (OptimisationSetup_obj.j4_IUPR_TargetMass_flt*OptimisationSetup_obj.j1_IUPR_UPR2vsI1_DecPct_flt)*x3
+            print(f"Use a pasteur pipette to transfer around {round(TargetMassOfUPR1_g_float,2)} g UPR1 to the silicone mould gap.")
+            a1_g_arr = np.append(arr=a1_g_arr,values=MiscMethods_obj.NumericUserInputRetriever_func("Mass of StockUPR1 transferred? (g)"))
+
+        print(f"\n===== Synthesis and Oven Time =====")
+        BackupVariableNames_lis = ["TrialIdx","x1","x2","x3","j1","j2","j3","j4","a1","a2","a3","a4","a5","a6","a7","a8"]
+        BackupVariablesMatrix_lis = []
+        for i in BackupVariableNames_lis:
+            BackupVariablesMatrix_lis.append(np.empty(0))
+
+        for TrialIdx_int,a1_g_flt,RunningTrials_x1_flt,RunningTrials_x2_flt,RunningTrials_x3_flt in zip(RunningTrialsIdx_arr,a1_g_arr,RunningTrials_x1_arr,RunningTrials_x2_arr,RunningTrials_x3_arr):
+            print(f"\n-----Trial {TrialIdx_int}-----")
+            OvenTemperatureSetting,HeraeusTemperatureSetting = MiscMethods_obj.ActualTemperatureToOvenSetting(RunningTrials_x2_flt)
+            print(f"Temperature Target: {round(RunningTrials_x2_flt,1)}oC")
+            print(f"Pre-Heat the Oven to {round(OvenTemperatureSetting,1)}oC.")
+            print(f"Pre-Heat the Heraeus to {round(HeraeusTemperatureSetting,1)}oC.")
+            print()
+
+            x1_flt = RunningTrials_x1_flt       # Oven time
+            x2_flt = RunningTrials_x2_flt       # Oven temperature
+            x3_flt = RunningTrials_x3_flt       # UPR1 (vs RD2) in UPR2
+            x_vals_lis = [x1_flt,x2_flt,x3_flt]
+
+            j1_flt = OptimisationSetup_obj.j1_IUPR_UPR2vsI1_DecPct_flt
+            j2_flt = OptimisationSetup_obj.j2_UPR1_UPvsRD1_DecPct_flt
+            j3_flt = OptimisationSetup_obj.j3_I1_CSvsDBP_DecPct_flt
+            j4_flt = OptimisationSetup_obj.j4_IUPR_TargetMass_flt
+            j_vals_lis = [j1_flt,j2_flt,j3_flt,j4_flt]
+
+            a1_flt = a1_g_flt                       # Mass of UPR1 (g)
+            a2_flt = a1_flt*j2_flt                  # Mass of UP (vs RD1) in UPR1 (g)
+            a3_flt = a1_flt*(1-j2_flt)              # Mass of RD1 (vs UP) in UPR1 (g)
+            a4_flt = ((a2_flt/x3_flt)*(1-x3_flt))-a3_flt # Mass of RD2 (vs UP) in UPR2
+            a5_flt = a4_flt+a1_flt                  # Mass of UPR2 (g)
+            a6_flt = (a5_flt/j1_flt)*(1-j1_flt)     # Mass of I1 (vs UPR2) in IUPR (g)      [ADD THIS]
+            a7_flt = a6_flt*j3_flt                  # Mass of CS (vs DBP) in I1 (g)
+            a8_flt = a6_flt*(1-j3_flt)              # Mass of DBP (vs CS) in I1 (g)
+            a_vals_lis = [a1_flt,a2_flt,a3_flt,a4_flt,a5_flt,a6_flt,a7_flt,a8_flt]
+
+            var_vals_lis = [TrialIdx_int]+x_vals_lis+j_vals_lis+a_vals_lis
+            for count,(val,BackupVariable_arr) in enumerate(zip(var_vals_lis,BackupVariablesMatrix_lis)):
+                BackupVariablesMatrix_lis[count] = np.append(BackupVariable_arr,val)
+
+            print(f"Add {round(a4_flt,3)} g {OptimisationSetup_obj.SubstanceName_str}")
+            SubstanceName_str = OptimisationSetup_obj.SubstanceName_str
+            SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
+            SubstanceTemperature_flt = OptimisationSetup_obj.SubstanceTemperature_flt
+            print(f"Use either:")
+            for pipette_str in pipette_lis:
+                print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
+                CalibrationDataLocation_str = PipettingMethods_obj.CalibrationDataAvailabilityChecker_func(SubstanceInfo_dict=SubstanceInfo_dict,PipetteCalibrationData_dict=PipetteData_dict,PipetteName_str=pipette_str,TipName_str=PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict),Temperature_oc_flt=SubstanceTemperature_flt,PackageLocation_str=MiscMethods_obj.RootPackageLocation_str,PipetteDependenciesLocation_str=PipettingMethods_obj.DependencyFolderLocation_str)
+                CalibrationStraightLineEquationParameters_arr = PipettingMethods_obj.CalibrationEquationGenerator_func(CalibrationDataLocation_str)
+                Pipettings_int,Setting_flt = PipettingMethods_obj.PipettingStrategyElucidator(a4_flt,CalibrationStraightLineEquationParameters_arr,CalibrationDataLocation_str)
+                print(f"Set to {round(Setting_flt,3)} {PipettingMethods_obj.UnitRetriever_func(pipette_str,PipetteData_dict)} and make {Pipettings_int} transfer(s) at {SubstanceTemperature_flt}oC.")
+            print()
+            print(f"In a weighing boat:")
+            print(f"Add {round(a6_flt,3)} g I1")
+            print()
+            Hours_int,Minutes_int,Seconds_int = MiscMethods_obj.SecondsToHoursMinutesSeconds(RunningTrials_x1_flt)
+            print(f"Heat sample for {Hours_int} hours, {Minutes_int} minutes, {Seconds_int} seconds.")
+            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+
+        # Backing up the variables calculated during the trials.
+        BackupVariablesArrays_mat = np.array(BackupVariablesMatrix_lis)
+        BackupCsvSaving(OptimisationSetup_obj,BackupVariablesArrays_mat,BackupVariableNames_lis)
+
 class TailoredMethods_class(object):
     def __init__(self):
         self.name = "Outer Class - Tailored Methods Class"
@@ -2541,3 +2688,4 @@ class TailoredMethods_class(object):
         self.Method20250817Dim4 = Method20250817Dim4_class()
         self.Method20251120Dim2 = Method20251120Dim2_class()
         self.Method20251123Dim3 = Method20251123Dim3_class()
+        self.Method20251202Dim3 = Method20251202Dim3_class()
