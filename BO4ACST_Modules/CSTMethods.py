@@ -1123,9 +1123,8 @@ class CSTMethods_class():
             if len(SustainedRise) == ArbitrarySustainedRise_int:
                 EndStrain = DatasetTwo[1][int(SustainedRise[0])]
                 break
-            # print(counter,len(DatasetTwo[0]))
-            if counter == len(DatasetTwo[0])-2:
-                EndStrain = Strain_flt
+            if counter == len(DatasetTwo[0])-3:
+                EndStrain = DatasetTwo[1][int(counter-3)]
                 break
 
         # Finding the proximity of all points in the original dataset to the strain of the second inflection point.

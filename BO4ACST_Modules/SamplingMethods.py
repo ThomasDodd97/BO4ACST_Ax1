@@ -725,7 +725,7 @@ class McIntersiteProjTh_class():
         n_flt = len(TrialsThusFar_df)
 
         # Number of Points Candidated
-        c_flt = 250*n_flt
+        c_flt = 7500
 
         # Alpha Hyperparameter
         alpha_flt = 0.5
@@ -812,7 +812,7 @@ class McIntersiteProjTh_class():
         c_flt = 100*n_flt
 
         # Alpha Hyperparameter
-        alpha_flt = 0.5
+        alpha_flt = 0.50
 
         # Candidate Matrix
         y_lis = []

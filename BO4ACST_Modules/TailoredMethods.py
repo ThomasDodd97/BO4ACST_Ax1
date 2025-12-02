@@ -2484,14 +2484,14 @@ class Method20251123Dim3_class():
 
             j1_flt = OptimisationSetup_obj.j1_IUPR_UPR2vsI1_DecPct_flt
             j2_flt = OptimisationSetup_obj.j2_UPR1_UPvsRD1_DecPct_flt
-            j3_flt = OptimisationSetup_obj.j4_I1_CSvsDBP_DecPct_flt
-            j4_flt = OptimisationSetup_obj.j5_IUPR_TargetMass_flt
+            j3_flt = OptimisationSetup_obj.j3_I1_CSvsDBP_DecPct_flt
+            j4_flt = OptimisationSetup_obj.j4_IUPR_TargetMass_flt
             j_vals_lis = [j1_flt,j2_flt,j3_flt,j4_flt]
 
             a1_flt = a1_g_flt                       # Mass of UPR1 (g)
             a2_flt = a1_flt*j2_flt                  # Mass of UP (vs RD1) in UPR1 (g)
             a3_flt = a1_flt*(1-j2_flt)              # Mass of RD1 (vs UP) in UPR1 (g)
-            a4_flt = (a1_flt/x3_flt)*(1-x3_flt)     # Mass of RD2 (vs UPR1) in UPR2 (g)  
+            a4_flt = ((a2_flt/x3_flt)*(1-x3_flt))-a3_flt # Mass of RD2 (vs UP) in UPR2
             a5_flt = a4_flt+a1_flt                  # Mass of UPR2 (g)
             a6_flt = (a5_flt/j1_flt)*(1-j1_flt)     # Mass of I1 (vs UPR2) in IUPR (g)      [ADD THIS]
             a7_flt = a6_flt*j3_flt                  # Mass of CS (vs DBP) in I1 (g)
@@ -2502,10 +2502,10 @@ class Method20251123Dim3_class():
             for count,(val,BackupVariable_arr) in enumerate(zip(var_vals_lis,BackupVariablesMatrix_lis)):
                 BackupVariablesMatrix_lis[count] = np.append(BackupVariable_arr,val)
 
-            print(f"Add {round(a4_flt,3)} g DMI")
-            SubstanceName_str = "DmI"
+            print(f"Add {round(a4_flt,3)} g {OptimisationSetup_obj.SubstanceName_str}")
+            SubstanceName_str = OptimisationSetup_obj.SubstanceName_str
             SubstanceInfo_dict = ChemicalData_dict["chemicals"][SubstanceName_str]
-            SubstanceTemperature_flt = 40.0
+            SubstanceTemperature_flt = OptimisationSetup_obj.SubstanceTemperature_flt
             print(f"Use either:")
             for pipette_str in pipette_lis:
                 print(f"> {pipette_str} equipped with {PipettingMethods_obj.TipSelector_func(pipette_str,PipetteData_dict)}")
@@ -2519,7 +2519,7 @@ class Method20251123Dim3_class():
             print()
             Hours_int,Minutes_int,Seconds_int = MiscMethods_obj.SecondsToHoursMinutesSeconds(RunningTrials_x1_flt)
             print(f"Heat sample for {Hours_int} hours, {Minutes_int} minutes, {Seconds_int} seconds.")
-            MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
+            # MiscMethods_obj.CheckpointUserInputRetriever_func("Continue? (y)", "y")
 
         # Backing up the variables calculated during the trials.
         BackupVariablesArrays_mat = np.array(BackupVariablesMatrix_lis)

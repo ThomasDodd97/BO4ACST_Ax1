@@ -262,10 +262,10 @@ class PlottingMethods_class(object):
                         t = np.datetime64("now")
                         if TypeOfJob_str == "mean":
                             pred_lis = AxClient_obj.predict(points=[{OptimisationSetup_obj.Parameters_lis[0].name:x1_sca,OptimisationSetup_obj.Parameters_lis[1].name:x2_sca,OptimisationSetup_obj.Parameters_lis[2].name:x3_sca}])
-                            pred_sca = pred_lis[0]["t1"][0] # Mean evaluations
+                            pred_sca = pred_lis[0]["ybp"][0] # Mean evaluations
                         elif TypeOfJob_str == "covariance":
                             pred_lis = AxClient_obj.predict(points=[{OptimisationSetup_obj.Parameters_lis[0].name:x1_sca,OptimisationSetup_obj.Parameters_lis[1].name:x2_sca,OptimisationSetup_obj.Parameters_lis[2].name:x3_sca}])
-                            pred_sca = pred_lis[0]["t1"][1] # Covariance evaluations
+                            pred_sca = pred_lis[0]["ybp"][1] # Covariance evaluations
                         # elif TypeOfJob_str == "acquisition":
                         #     pred_lis = model_bridge_with_GPEI.s([observation.ObservationFeatures(parameters={f"{OptimisationSetup_obj.Parameters_lis[0].name}":x1_sca,f"{OptimisationSetup_obj.Parameters_lis[1].name}":x2_sca,f"{OptimisationSetup_obj.Parameters_lis[2].name}":x3_sca},start_time=t,end_time=t)])
                         #     pred_sca = pred_lis[0] # Acquisition function evaluations
